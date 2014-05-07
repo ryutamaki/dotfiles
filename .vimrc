@@ -1,3 +1,6 @@
+""-----------------------------------------------a
+"  NEOBundle
+""-----------------------------------------------
 if has('vim_starting')
   set nocompatible
   set runtimepath+=~/.vim/bundle/neobundle.vim/
@@ -7,16 +10,17 @@ call neobundle#begin(expand('~/.vim/bundle/'))
 
 NeoBundleFetch 'Shougo/neobundle.vim'
 
-""----------------
-"  plugins
-""----------------
-
-""----------------
+""-----------------------------------------------
+"  NEOBundle > plugins
+""-----------------------------------------------
 
 
-""----------------
-"  colorschemes
-""----------------
+""-----------------------------------------------
+
+
+""-----------------------------------------------
+"  NEOBundle > colorschemes
+""-----------------------------------------------
 
 " molokai
 NeoBundle 'tomasr/molokai'
@@ -30,8 +34,7 @@ NeoBundle 'altercation/vim-colors-solarized'
 NeoBundle 'Shougo/unite.vim'
 NeoBundle 'ujihisa/unite-colorscheme'
 
-""----------------
-
+""-----------------------------------------------
 
 
 call neobundle#end()
@@ -42,6 +45,12 @@ filetype plugin indent on
 " this will conveniently prompt you to install them.
 NeoBundleCheck
 
+""-----------------------------------------------
+
+
+""-----------------------------------------------
+"  Editor settings
+""-----------------------------------------------
 
 " The width of tab on the display
 set tabstop=4
@@ -50,6 +59,10 @@ set shiftwidth=4
 " Expant tab to spaces
 set expandtab
 
+
+""-----------------------------------------------
+"  Display settings
+""-----------------------------------------------
 
 syntax on
 " Display a title of an editing file
@@ -65,6 +78,11 @@ set ruler
 " Display special characters
 set list
 
+
+
+""-----------------------------------------------
+"  Auto check and set encoding
+""-----------------------------------------------
 
 " copied from http://qiita.com/fl04t/items/57ebb0fe8009d00c8499
 " 文字コードの自動認識
