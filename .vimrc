@@ -51,6 +51,7 @@ set shiftwidth=4
 set expandtab
 
 
+syntax on
 " Display a title of an editing file
 set title
 " 256 colors
