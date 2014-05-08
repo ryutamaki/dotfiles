@@ -19,7 +19,7 @@ fi
 
 dir=$HOME/dotfiles
 olddir=$HOME/dotfiles_old
-files="vimrc gitconfig"
+files="vimrc gitconfig zshrc"
 
 echo "Creating $olddir for backup of any existing dotfiles in $HOME"
 mkdir -p $olddir
@@ -35,5 +35,7 @@ for file in $files; do
     echo "Creating symlink to $file in home directory."
     ln -s $dir/.$file $HOME/.$file
 done
+
+touch $HOME/.zsh_history
 
 ##-----------------------------------------------
