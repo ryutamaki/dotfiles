@@ -58,6 +58,8 @@ set tabstop=4
 set shiftwidth=4
 " Expant tab to spaces
 set expandtab
+" Scroll with padding
+set scrolloff=10
 
 
 ""-----------------------------------------------
@@ -77,7 +79,6 @@ set number
 set ruler
 " Display special characters
 set list
-
 
 
 ""-----------------------------------------------

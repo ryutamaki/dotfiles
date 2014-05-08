@@ -3,7 +3,7 @@
 #  Install NEOBundle
 ##-----------------------------------------------
 
-if [ -e /usr/bin/curl ] || [ -e /bin/curl]; then
+if [ -e /usr/bin/curl ] || [ -e /bin/curl ]; then
     curl https://raw.githubusercontent.com/Shougo/neobundle.vim/master/bin/install.sh | sh
 else
     echo "You should install 'curl' due to install NEOBunbdle."
