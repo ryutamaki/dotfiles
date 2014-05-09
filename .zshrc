@@ -79,5 +79,5 @@ zstyle ':vcs_info:*' actionformats \
 precmd() {
     psvar=()
     LANG=en_US.UTF-8 vcs_info
-    RPROMPT="${vcs_info_msg_0_}-[%{%B%F{white}%K{magenta}%}%~%{%k%f%b%}]"
+    RPROMPT="${vcs_info_msg_0_}"
 }
