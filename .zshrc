@@ -60,8 +60,8 @@ prompt_left_up="-${prompt_left_self}-${prompt_left_status}-${prompt_left_current
 prompt_left_down="-[%h]%(1j,(%j),)%{%B%}%#%{%b%} "
 
 # Set prompt
+# RPROMPT sets with git status below
 PROMPT="${prompt_left_up}"$'\n'"${prompt_left_down}"
-RPROMPT="[%{%B%F{white}%K{magenta}%}%~%{%k%f%b%}]"
 
 # Show git branch and status if the directory, where you are, have it.
 autoload -Uz vcs_info
@@ -71,6 +71,6 @@ zstyle ':vcs_info:*' actionformats \
     '(%{%F{white}%K{green}%}%s%{%f%k%})-[%{%F{white}%K{blue}%}%b%{%f%k%}|%{%F{white}%K{red}%}%a%{%f%k%}]'
 precmd() {
     psvar=()
-    LANG=en_US.UTF-8 vcs_info >&/dev/null
-    RPROMPT="${vcs_info_msg_0_}-${RPROMPT}"
+    LANG=en_US.UTF-8 vcs_info
+    RPROMPT="${vcs_info_msg_0_}-[%{%B%F{white}%K{magenta}%}%~%{%k%f%b%}]"
 }
