@@ -29,8 +29,8 @@ echo "Chenge to the $dir directory"
 cd $dir
 echo "...done"
 
+echo "Moving any existing dotfiles from $HOME to $olddir"
 for file in $files; do
-    echo "Moving any existing dotfiles from $HOME to $olddir"
     mv $HOME/.$file $olddir/
     echo "Creating symlink to $file in home directory."
     ln -s $dir/.$file $HOME/.$file
