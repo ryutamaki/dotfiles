@@ -1,7 +1,7 @@
 # -*- mode: sh; indent-tabs-mode: nil -*-
 
-# Use vim keybind
-bindkey -v
+# Use emacs keybind
+bindkey -e
 
 
 ##-----------------------------------------------
