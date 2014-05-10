@@ -11,11 +11,11 @@ bindkey -e
 # Move to a directory without 'cd'
 setopt auto_cd
 # aliases
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias .....='cd ../../../..'
-alias ......='cd ../../../../..'
+alias -g ..='cd ..'
+alias -g ...='cd ../..'
+alias -g ....='cd ../../..'
+alias -g .....='cd ../../../..'
+alias -g ......='cd ../../../../..'
 
 
 ##-----------------------------------------------
