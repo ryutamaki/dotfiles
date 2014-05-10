@@ -19,7 +19,7 @@ fi
 
 dir=$HOME/dotfiles
 olddir=$HOME/dotfiles_old
-files="vimrc gitconfig zshrc zshenv"
+files="vimrc gitconfig zshrc zshenv tmux.conf"
 
 echo "Creating $olddir for backup of any existing dotfiles in $HOME"
 mkdir -p $olddir
