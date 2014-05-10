@@ -16,49 +16,40 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 
 
 ""-----------------------------------------------
-
-
-""-----------------------------------------------
 "  NEOBundle > colorschemes
 ""-----------------------------------------------
 
-" molokai
+"" molokai
 NeoBundle 'tomasr/molokai'
-" solarized
+"" solarized
 NeoBundle 'altercation/vim-colors-solarized'
 
-
-" Unite -- colorscheme picker
-" [usage]:Unite colorscheme -auto-preview
-"        press j and k to pick a color
+"" Unite -- colorscheme picker
+"" [usage]:Unite colorscheme -auto-preview
+""        press j and k to pick a color
 NeoBundle 'Shougo/unite.vim'
 NeoBundle 'ujihisa/unite-colorscheme'
-
-""-----------------------------------------------
-
 
 call neobundle#end()
 
 filetype plugin indent on
 
-" If there are uninstalled bundles found on startup,
-" this will conveniently prompt you to install them.
+"" If there are uninstalled bundles found on startup,
+"" this will conveniently prompt you to install them.
 NeoBundleCheck
-
-""-----------------------------------------------
 
 
 ""-----------------------------------------------
 "  Editor settings
 ""-----------------------------------------------
 
-" The width of tab on the display
+"" The width of tab on the display
 set tabstop=4
-" The width of tab when you insert one
+"" The width of tab when you insert one
 set shiftwidth=4
-" Expant tab to spaces
+"" Expant tab to spaces
 set expandtab
-" Scroll with padding
+"" Scroll with padding
 set scrolloff=10
 
 
@@ -67,17 +58,17 @@ set scrolloff=10
 ""-----------------------------------------------
 
 syntax on
-" Display a title of an editing file
+"" Display a title of an editing file
 set title
-" 256 colors
+"" 256 colors
 set t_Co=256
-" Color scheme
+"" Color scheme
 colorscheme molokai
-" Display number of lines
+"" Display number of lines
 set number
-" Display ruler
+"" Display ruler
 set ruler
-" Display special characters
+"" Display special characters
 set list
 
 
@@ -85,8 +76,8 @@ set list
 "  Auto check and set encoding
 ""-----------------------------------------------
 
-" copied from http://qiita.com/fl04t/items/57ebb0fe8009d00c8499
-" 文字コードの自動認識
+"" copied from http://qiita.com/fl04t/items/57ebb0fe8009d00c8499
+"" 文字コードの自動認識
 if &encoding !=# 'utf-8'
   set encoding=japan
   set fileencoding=japan
@@ -94,16 +85,16 @@ endif
 if has('iconv')
   let s:enc_euc = 'euc-jp'
   let s:enc_jis = 'iso-2022-jp'
-  " iconvがeucJP-msに対応しているかをチェック
+  "" iconvがeucJP-msに対応しているかをチェック
   if iconv("\x87\x64\x87\x6a", 'cp932', 'eucjp-ms') ==# "\xad\xc5\xad\xcb"
     let s:enc_euc = 'eucjp-ms'
     let s:enc_jis = 'iso-2022-jp-3'
-  " iconvがJISX0213に対応しているかをチェック
+  "" iconvがJISX0213に対応しているかをチェック
   elseif iconv("\x87\x64\x87\x6a", 'cp932', 'euc-jisx0213') ==# "\xad\xc5\xad\xcb"
     let s:enc_euc = 'euc-jisx0213'
     let s:enc_jis = 'iso-2022-jp-3'
   endif
-  " fileencodingsを構築
+  "" fileencodingsを構築
   if &encoding ==# 'utf-8'
     let s:fileencodings_default = &fileencodings
     let &fileencodings = s:enc_jis .','. s:enc_euc .',cp932'
@@ -123,7 +114,7 @@ if has('iconv')
       let &fileencodings = &fileencodings .','. s:enc_euc
     endif
   endif
-  " 定数を処分
+  "" 定数を処分
   unlet s:enc_euc
   unlet s:enc_jis
 endif

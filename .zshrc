@@ -1,6 +1,4 @@
-# -*- mode: sh; indent-tabs-mode: nil -*-
-
-# Use emacs keybind
+## Use emacs keybind
 bindkey -e
 
 
@@ -8,9 +6,9 @@ bindkey -e
 #  Directory settings
 ##-----------------------------------------------
 
-# Move to a directory without 'cd'
+## Move to a directory without 'cd'
 #setopt auto_cd
-# aliases
+## aliases
 alias -g ..='cd ..'
 alias -g ...='cd ../..'
 alias -g ....='cd ../../..'
@@ -22,7 +20,7 @@ alias -g ......='cd ../../../../..'
 #  ls settings
 ##-----------------------------------------------
 
-# ls with colors
+## ls with colors
 case $(uname) in
     *BSD|Darwin)
     alias ls="ls -G"
@@ -39,17 +37,17 @@ alias ll="ls -AlhFv"
 #  History settings
 ##-----------------------------------------------
 
-# Set history file
+## Set history file
 HISTFILE=~/.zsh_history
-# Number of history stored
+## Number of history stored
 HISTSIZE=10000000
-# Number of history saved
+## Number of history saved
 SAVEHIST=$HISTSIZE
-# Store the time not only commands
+## Store the time not only commands
 setopt extended_history
-# Share history between processes
+## Share history between processes
 setopt share_history
-# Add history immediately
+## Add history immediately
 setopt inc_append_history
 
 
@@ -57,10 +55,10 @@ setopt inc_append_history
 #  Complement settings
 ##-----------------------------------------------
 
-# Initialize
+## Initialize
 autoload -Uz compinit
 compinit
-# Don't play sounds when no list comes up
+## Don't play sounds when no list comes up
 setopt no_beep
 
 
@@ -76,18 +74,18 @@ setopt prompt_percent
 ## コピペしやすいようにコマンド実行後は右プロンプトを消す。
 setopt transient_rprompt
 
-# Decide prompt looks
+## Decide prompt looks
 prompt_left_self="(%{%B%}%n%{%b%}%{%F{cyan}%}@%{%f%}%{%B%}%m%{%b%})"
 prompt_left_status="(%{%B%F{white}%(?.%K{green}.%K{red})%}%?%{%k%f%b%})"
 prompt_left_current_dir="<%{%B%K{magenta}%F{white}%}%d%{%f%k%b%}>"
 prompt_left_up="-${prompt_left_self}-${prompt_left_status}-${prompt_left_current_dir}-"
 prompt_left_down="-[%h]%(1j,(%j),)%{%B%}%#%{%b%} "
 
-# Set prompt
-# RPROMPT sets with git status below
+## Set prompt
+## RPROMPT sets with git status below
 PROMPT="${prompt_left_up}"$'\n'"${prompt_left_down}"
 
-# Show git branch and status if the directory, where you are, have it.
+## Show git branch and status if the directory, where you are, have it.
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' formats \
     '(%{%F{white}%K{green}%}%s%{%f%k%})-[%{%F{white}%K{blue}%}%b%{%f%k%}]'
