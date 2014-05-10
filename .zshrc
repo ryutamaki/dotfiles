@@ -9,7 +9,7 @@ bindkey -e
 ##-----------------------------------------------
 
 # Move to a directory without 'cd'
-setopt auto_cd
+#setopt auto_cd
 # aliases
 alias -g ..='cd ..'
 alias -g ...='cd ../..'
