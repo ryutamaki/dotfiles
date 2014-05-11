@@ -16,6 +16,9 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 
 NeoBundle 'Shougo/unite.vim'
 
+NeoBundle 'tyru/caw.vim.git'
+nmap <leader>/ <Plug>(caw:i:toggle)
+vmap <leader>/ <Plug>(caw:i:toggle)
 
 ""-----------------------------------------------
 "  NEOBundle > colorschemes
