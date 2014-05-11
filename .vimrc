@@ -14,6 +14,8 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 "  NEOBundle > plugins
 ""-----------------------------------------------
 
+NeoBundle 'Shougo/unite.vim'
+
 
 ""-----------------------------------------------
 "  NEOBundle > colorschemes
@@ -27,7 +29,6 @@ NeoBundle 'altercation/vim-colors-solarized'
 "" Unite -- colorscheme picker
 "" [usage]:Unite colorscheme -auto-preview
 ""        press j and k to pick a color
-NeoBundle 'Shougo/unite.vim'
 NeoBundle 'ujihisa/unite-colorscheme'
 
 call neobundle#end()
