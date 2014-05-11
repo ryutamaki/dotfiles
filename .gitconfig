@@ -6,7 +6,11 @@
 [core]
     editor = vim
 [alias]
+    a  = add
+    ap = add -p
     c  = commit
+    cm = commit -m
     st = status
     co = checkout
     br = branch
+    df = diff
