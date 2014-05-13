@@ -14,3 +14,4 @@
     co = checkout
     br = branch
     df = diff
+    lg = log --graph --all --format="%C(cyan)%an%Creset%x09%C(yellow)%h%Creset%x09%s"
