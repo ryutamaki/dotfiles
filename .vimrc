@@ -78,6 +78,10 @@ set number
 set ruler
 "" Display special characters
 set list
+"" Add statusline
+set laststatus=2
+"" Show commands on status line
+set showcmd
 
 
 ""-----------------------------------------------
