@@ -60,7 +60,8 @@ autoload -Uz compinit
 compinit
 ## Don't play sounds when no list comes up
 setopt no_beep
-
+## Don't care the letter whichever capital or small
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
 ##-----------------------------------------------
 #  Pronpt settings
