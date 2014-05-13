@@ -77,7 +77,7 @@ setopt transient_rprompt
 ## Decide prompt looks
 prompt_left_self="(%{%B%}%n%{%b%}%{%F{cyan}%}@%{%f%}%{%B%}%m%{%b%})"
 prompt_left_status="(%{%B%F{white}%(?.%K{green}.%K{red})%}%?%{%k%f%b%})"
-prompt_left_current_dir="<%{%B%K{magenta}%F{white}%}%d%{%f%k%b%}>"
+prompt_left_current_dir="<%{%B%K{white}%}%d%{%f%k%b%}>"
 prompt_left_up="-${prompt_left_self}-${prompt_left_status}-${prompt_left_current_dir}-"
 prompt_left_down="-[%h]%(1j,(%j),)%{%B%}%#%{%b%} "
 
