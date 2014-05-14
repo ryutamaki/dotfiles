@@ -43,7 +43,7 @@ NeoBundle 'Shougo/unite.vim'
 NeoBundle 'Shougo/neomru.vim'
 nnoremap [unite] <Nop>
 nmap <leader>f [unite]
-nnoremap <silent> [unite]f :<C-u>Unite file<CR>
+nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
 nnoremap <silent> [unite]m :<C-u>Unite file_mru<CR>
 
 
