@@ -91,7 +91,8 @@ set shiftwidth=4
 set expandtab
 "" Scroll with padding
 set scrolloff=10
-
+"" Break a line with Enter key in normal mode
+nmap <CR> i<CR><ESC>
 
 ""-----------------------------------------------
 "  Display settings
