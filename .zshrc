@@ -62,6 +62,8 @@ compinit
 setopt no_beep
 ## Don't care the letter whichever capital or small
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+## Complemt with clors
+zstyle ':completion:*' list-colors ""
 
 ##-----------------------------------------------
 #  Pronpt settings
