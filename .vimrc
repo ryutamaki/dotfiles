@@ -93,6 +93,9 @@ set expandtab
 set scrolloff=10
 "" Break a line with Enter key in normal mode
 nmap <CR> i<CR><ESC>
+nmap <C-h> ^
+nmap <C-l> $
+
 
 ""-----------------------------------------------
 "  Display settings
