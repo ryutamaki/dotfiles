@@ -11,6 +11,7 @@ path=(
       /usr/bin(N-/)
       /bin(N-/)
       /usr/local/sbin(N-/)
+      /usr/sbin(N-/)
 )
 
 
