@@ -91,6 +91,8 @@ set shiftwidth=4
 set expandtab
 "" Scroll with padding
 set scrolloff=10
+"" Enable to delete tabs or breaking lines using backspace
+set backspace=start,eol,indent
 "" Break a line with Enter key in normal mode
 nmap <CR> i<CR><ESC>
 nmap <C-h> ^
