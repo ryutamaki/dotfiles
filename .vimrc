@@ -87,7 +87,7 @@ NeoBundleCheck
 set tabstop=4
 "" The width of tab when you insert one
 set shiftwidth=4
-"" Expant tab to spaces
+"" Expand tab to spaces
 set expandtab
 "" Scroll with padding
 set scrolloff=10
