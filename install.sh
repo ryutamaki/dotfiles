@@ -36,5 +36,6 @@ for file in $files; do
 done
 
 touch $HOME/.zsh_history
+touch $HOME/.zshenv.local
 
 ##-----------------------------------------------

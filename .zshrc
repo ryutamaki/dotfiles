@@ -99,3 +99,12 @@ precmd() {
     LANG=en_US.UTF-8 vcs_info
     RPROMPT="${vcs_info_msg_0_}"
 }
+
+
+##------------------------------------------------
+#  include .zshenv.local
+##------------------------------------------------
+
+if [ -e ~/.zshenv.local ]; then
+    source ~/.zshenv.local
+fi
