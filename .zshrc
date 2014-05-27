@@ -3,17 +3,17 @@ bindkey -e
 
 
 ##-----------------------------------------------
-#  Directory settings
+#  directory settings
 ##-----------------------------------------------
 
-## Move to a directory without 'cd'
+## move to a directory without 'cd'
 #setopt auto_cd
 ## aliases
-alias -g ..='cd ..'
-alias -g ...='cd ../..'
-alias -g ....='cd ../../..'
-alias -g .....='cd ../../../..'
-alias -g ......='cd ../../../../..'
+alias -g ..='..'
+alias -g ...='../..'
+alias -g ....='../../..'
+alias -g .....='../../../..'
+alias -g ......='../../../../..'
 
 
 ##-----------------------------------------------
