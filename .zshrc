@@ -78,11 +78,11 @@ setopt prompt_percent
 setopt transient_rprompt
 
 ## Decide prompt looks
-prompt_left_self="(%{%B%}%n%{%b%}%{%F{cyan}%}@%{%f%}%{%B%}%m%{%b%})"
-prompt_left_status="(%{%B%F{white}%(?.%K{green}.%K{red})%}%?%{%k%f%b%})"
-prompt_left_current_dir="<%{%B%}%d%{%f%k%b%}>"
-prompt_left_up="-${prompt_left_self}-${prompt_left_status}-${prompt_left_current_dir}-"
-prompt_left_down="-[%h]%(1j,(%j),)%{%B%}%#%{%b%} "
+prompt_left_self="[%{%B%}%n%{%b%}%{%F{cyan}%}@%{%f%}%{%B%}%m%{%b%}]"
+prompt_left_status="[%{%B%F{white}%(?.%K{green}.%K{red})%}%?%{%k%f%b%}]"
+prompt_left_current_dir="[%{%B%}%d%{%f%k%b%}]"
+prompt_left_up="${prompt_left_self} ${prompt_left_status} ${prompt_left_current_dir}"
+prompt_left_down="-%(1j,(%j),)%{%B%}%#%{%b%} "
 
 ## Set prompt
 ## RPROMPT sets with git status below
@@ -91,7 +91,7 @@ PROMPT="${prompt_left_up}"$'\n'"${prompt_left_down}"
 ## Show git branch and status if the directory, where you are, have it.
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' formats \
-    '(%{%F{white}%K{green}%}%s%{%f%k%})-[%{%F{white}%K{blue}%}%b%{%f%k%}]'
+    '[%{%F{white}%F{green}%}%s%{%f%k%} %{%F{white}%F{blue}%}%b%{%f%k%}]'
 zstyle ':vcs_info:*' actionformats \
     '(%{%F{white}%K{green}%}%s%{%f%k%})-[%{%F{white}%K{blue}%}%b%{%f%k%}|%{%F{white}%K{red}%}%a%{%f%k%}]'
 precmd() {
