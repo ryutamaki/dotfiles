@@ -109,7 +109,7 @@ set title
 "" 256 colors
 set t_Co=256
 "" Color scheme
-colorscheme molokai
+" colorscheme molokai
 "" Display number of lines
 set number
 "" Display ruler
