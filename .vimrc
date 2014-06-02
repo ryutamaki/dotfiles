@@ -54,6 +54,10 @@ let g:syntastic_enable_signs=1
 let g:syntastic_auto_loc_list=1
 
 
+NeoBundle 'scrooloose/nerdtree'
+let g:NERDTreeShowBookmarks=1
+
+
 NeoBundle 'tyru/caw.vim.git'
 nmap <leader>/ <Plug>(caw:i:toggle)
 vmap <leader>/ <Plug>(caw:i:toggle)
