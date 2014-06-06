@@ -14,6 +14,9 @@ alias -g ...='../..'
 alias -g ....='../../..'
 alias -g .....='../../../..'
 alias -g ......='../../../../..'
+alias -g ......='../../../../../..'
+alias -g .......='../../../../../../..'
+alias -g ........='../../../../../../../..'
 
 
 ##-----------------------------------------------
@@ -32,6 +35,7 @@ esac
 
 alias la="ls -A"
 alias ll="ls -AlhFv"
+
 
 ##-----------------------------------------------
 #  History settings
@@ -64,6 +68,7 @@ setopt no_beep
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 ## Complemt with clors
 zstyle ':completion:*' list-colors ""
+
 
 ##-----------------------------------------------
 #  Pronpt settings
