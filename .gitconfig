@@ -2,6 +2,7 @@
     ui = auto
 [core]
     editor = vim
+    pager = lv -c
 [include]
     path = ~/.gitconfig.local
 [alias]
