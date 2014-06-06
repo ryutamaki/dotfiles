@@ -3,12 +3,13 @@ bindkey -e
 
 
 ##-----------------------------------------------
-#  directory settings
-##-----------------------------------------------
+#  aliases
+##------------------------------------------------
+
+alias g='git'
 
 ## move to a directory without 'cd'
 #setopt auto_cd
-## aliases
 alias -g ..='..'
 alias -g ...='../..'
 alias -g ....='../../..'
