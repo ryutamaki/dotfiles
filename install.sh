@@ -31,11 +31,14 @@ echo "...done"
 
 echo "Moving any existing dotfiles from $HOME to $olddir"
 for file in $files; do
-    mv $HOME/.$file $olddir/
+    if [ -e file ] ; then
+       mv $HOME/.$file $olddir/
+    fi
     ln -s $dir/.$file $HOME/.$file
 done
 
 touch $HOME/.zsh_history
 touch $HOME/.zshenv.local
+touch $HOME/.gitconfig.local
 
 ##-----------------------------------------------

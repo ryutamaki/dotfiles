@@ -1,10 +1,9 @@
-[user]
-    name = ryutamaki
-    email = ryu.mochi@gmail.com
 [color]
     ui = auto
 [core]
     editor = vim
+[include]
+    path = ~/.gitconfig.local
 [alias]
     a  = add
     aa = add -A
