@@ -34,7 +34,9 @@ for file in $files; do
     if [ -e file ] ; then
        mv $HOME/.$file $olddir/
     fi
-    ln -s $dir/.$file $HOME/.$file
+    if [ ! -L $HOME/.$file ] ; then
+        ln -s $dir/.$file $HOME/.$file
+    fi
 done
 
 touch $HOME/.zsh_history
