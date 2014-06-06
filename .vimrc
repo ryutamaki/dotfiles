@@ -58,6 +58,18 @@ NeoBundle 'scrooloose/nerdtree'
 let g:NERDTreeShowBookmarks=1
 
 
+NeoBundle 'itchyny/lightline.vim'
+let g:lightline = {
+\   'active': {
+\       'left': [ [ 'mode', 'paste' ], [ 'cd', 'dir', 'filename', 'modified' ] ],
+\   },
+\   'component': {
+\       'dir': '%.35(%{expand("%:h:s?\\S$?\\0/?")}%)',
+\       'cd': '%.35(%{fnamemodify(getcwd(), ":~")}%)',
+\   },
+\}
+
+
 NeoBundle 'tyru/caw.vim.git'
 nmap <leader>/ <Plug>(caw:i:toggle)
 vmap <leader>/ <Plug>(caw:i:toggle)
