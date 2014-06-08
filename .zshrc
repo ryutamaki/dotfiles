@@ -7,6 +7,7 @@ bindkey -e
 ##------------------------------------------------
 
 alias g='git'
+alias tmux='tmux a'
 
 ## move to a directory without 'cd'
 #setopt auto_cd
