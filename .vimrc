@@ -142,7 +142,7 @@ set t_Co=256
 "" Background
 set background=dark
 "" Color scheme
-" colorscheme molokai
+colorscheme molokai
 "" Display number of lines
 set number
 "" Display ruler
