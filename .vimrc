@@ -75,6 +75,13 @@ nmap <leader>/ <Plug>(caw:i:toggle)
 vmap <leader>/ <Plug>(caw:i:toggle)
 
 
+NeoBundle 'nathanaelkane/vim-indent-guides'
+let g:indent_guides_auto_colors=1
+let g:indent_guides_enable_on_vim_startup=1
+let g:indent_guides_start_level=2
+let g:indent_guides_guide_size=1
+
+
 NeoBundle 'rking/ag.vim'
 
 ""-----------------------------------------------
@@ -131,6 +138,8 @@ syntax on
 set title
 "" 256 colors
 set t_Co=256
+"" Background
+set background=dark
 "" Color scheme
 " colorscheme molokai
 "" Display number of lines
