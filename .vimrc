@@ -137,10 +137,14 @@ set number
 set ruler
 "" Display special characters
 set list
+"" Command line height
+set cmdheight=2
 "" Add statusline
 set laststatus=2
 "" Show commands on status line
 set showcmd
+"" Enable tab complement in cli
+set wildmenu
 
 
 ""-----------------------------------------------
