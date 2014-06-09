@@ -118,6 +118,8 @@ set backspace=start,eol,indent
 nmap <CR> i<CR><ESC>
 nmap <C-h> ^
 nmap <C-l> $
+"" Do not use .swp files
+set noswapfile
 
 
 ""-----------------------------------------------
