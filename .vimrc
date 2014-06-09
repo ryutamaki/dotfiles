@@ -52,6 +52,7 @@ nnoremap <silent> [unite]u :<C-u>Unite buffer file_mru<CR>
 NeoBundle 'scrooloose/syntastic'
 let g:syntastic_enable_signs=1
 let g:syntastic_auto_loc_list=1
+let g:syntastic_html_tidy_ignore_errors=[" proprietary attribute \"ng-"]
 
 
 NeoBundle 'scrooloose/nerdtree'
