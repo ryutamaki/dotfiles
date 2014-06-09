@@ -69,6 +69,8 @@ setopt no_beep
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 ## Complemt with clors
 zstyle ':completion:*' list-colors ""
+## Desplay files classify
+zstyle ':completion:*' group-name ''
 
 
 ##-----------------------------------------------
