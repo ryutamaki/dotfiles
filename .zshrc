@@ -7,7 +7,6 @@ bindkey -e
 ##------------------------------------------------
 
 alias g='git'
-alias tmux='tmux a'
 
 ## move to a directory without 'cd'
 #setopt auto_cd
@@ -70,6 +69,41 @@ setopt no_beep
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 ## Complemt with clors
 zstyle ':completion:*' list-colors ""
+
+
+##-----------------------------------------------
+#  tmux auto start
+##-----------------------------------------------
+
+is_screen_running() {
+  [ ! -z "$WINDOW" ]
+}
+is_tmux_running() {
+  [ ! -z "$TMUX" ]
+}
+is_screen_or_tmux_running() {
+  is_screen_running || is_tmux_running
+}
+shell_has_started_interactively() {
+  [ ! -z "$PS1" ]
+}
+resolve_alias() {
+  cmd="$1"
+  while 
+    whence "$cmd" >/dev/null 2>/dev/null && [ "$(whence "$cmd")" != "$cmd" ]
+  do
+    cmd=$(whence "$cmd")
+  done
+  echo "$cmd"
+}
+if ! is_screen_or_tmux_running && shell_has_started_interactively; then
+  for cmd in tmux tscreen screen; do
+    if whence $cmd >/dev/null 2>/dev/null; then
+      $(resolve_alias "$cmd")
+      break
+    fi
+  done
+fi
 
 
 ##-----------------------------------------------
