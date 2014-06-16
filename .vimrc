@@ -72,8 +72,6 @@ nmap <leader>/ <Plug>(caw:i:toggle)
 vmap <leader>/ <Plug>(caw:i:toggle)
 
 
-NeoBundle 'rking/ag.vim'
-
 ""-----------------------------------------------
 "  NEOBundle > colorschemes
 ""-----------------------------------------------
