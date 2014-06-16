@@ -55,10 +55,6 @@ let g:syntastic_auto_loc_list=1
 let g:syntastic_html_tidy_ignore_errors=[" proprietary attribute \"ng-"]
 
 
-NeoBundle 'scrooloose/nerdtree'
-let g:NERDTreeShowBookmarks=1
-
-
 NeoBundle 'itchyny/lightline.vim'
 let g:lightline = {
 \   'active': {
