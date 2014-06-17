@@ -72,6 +72,9 @@ nmap <leader>/ <Plug>(caw:i:toggle)
 vmap <leader>/ <Plug>(caw:i:toggle)
 
 
+NeoBundle 'thinca/vim-quickrun'
+
+
 ""-----------------------------------------------
 "  NEOBundle > colorschemes
 ""-----------------------------------------------
