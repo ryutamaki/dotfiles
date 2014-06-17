@@ -120,6 +120,10 @@ nmap <C-l> $
 set noswapfile
 "" show corsorline
 set cursorline
+"" search settings
+set hlsearch
+set ignorecase
+set smartcase
 
 
 ""-----------------------------------------------
