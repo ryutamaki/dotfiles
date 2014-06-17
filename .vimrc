@@ -118,6 +118,8 @@ nmap <C-h> ^
 nmap <C-l> $
 "" Do not use .swp files
 set noswapfile
+"" show corsorline
+set cursorline
 
 
 ""-----------------------------------------------
