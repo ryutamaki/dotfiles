@@ -71,13 +71,6 @@ NeoBundle 'thinca/vim-quickrun'
 
 "" molokai
 NeoBundle 'tomasr/molokai'
-"" solarized
-NeoBundle 'altercation/vim-colors-solarized'
-
-"" Unite -- colorscheme picker
-"" [usage]:Unite colorscheme -auto-preview
-""        press j and k to pick a color
-NeoBundle 'ujihisa/unite-colorscheme'
 
 call neobundle#end()
 
