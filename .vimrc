@@ -108,6 +108,7 @@ set smartcase
 "" key remappings
 nmap <C-h> ^
 nmap <C-l> $
+imap <silent> jj <ESC>
 
 
 ""-----------------------------------------------
