@@ -102,10 +102,6 @@ set expandtab
 set scrolloff=10
 "" Enable to delete tabs or breaking lines using backspace
 set backspace=start,eol,indent
-"" Break a line with Enter key in normal mode
-nmap <CR> i<CR><ESC>
-nmap <C-h> ^
-nmap <C-l> $
 "" Do not use .swp files
 set noswapfile
 "" show corsorline
@@ -114,6 +110,9 @@ set cursorline
 set hlsearch
 set ignorecase
 set smartcase
+"" key remappings
+nmap <C-h> ^
+nmap <C-l> $
 
 
 ""-----------------------------------------------
