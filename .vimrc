@@ -23,12 +23,14 @@ let g:neocomplcache_enable_at_startup=1
 
 NeoBundle 'Shougo/unite.vim'
 NeoBundle 'Shougo/neomru.vim'
+let g:unite_source_history_yank_enable =1
 nnoremap [unite] <Nop>
-nmap <leader>f [unite]
+nmap <leader>u [unite]
 nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
 nnoremap <silent> [unite]m :<C-u>Unite file_mru<CR>
 nnoremap <silent> [unite]b :<C-u>Unite buffer<CR>
 nnoremap <silent> [unite]u :<C-u>Unite buffer file_mru<CR>
+nnoremap <silent> [unite]y :<C-u>Unite history/yank<CR>
 
 
 NeoBundle 'hewes/unite-gtags'
