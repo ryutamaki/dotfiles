@@ -135,24 +135,6 @@ precmd() {
 
 
 ##------------------------------------------------
-#  Do ls and git status when you press enter
-##------------------------------------------------
-
-function do_enter() {
-    if [ -n "$BUFFER" ]; then
-        zle accept-line
-        return 0
-    fi
-    echo
-    ls
-    zle reset-prompt
-    return 0
-}
-zle -N do_enter
-bindkey '^m' do_enter
-
-
-##------------------------------------------------
 #  include .zshenv.local
 ##------------------------------------------------
 
