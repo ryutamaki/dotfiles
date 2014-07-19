@@ -53,8 +53,8 @@ let g:lightline = {
 \       'left': [ [ 'mode', 'paste' ], [ 'cd', 'dir', 'filename', 'modified' ] ],
 \   },
 \   'component': {
-\       'dir': '%.35(%{expand("%:h:s?\\S$?\\0/?")}%)',
-\       'cd': '%.35(%{fnamemodify(getcwd(), ":~")}%)',
+\       'dir': '%.50(%{expand("%:h:s?\\S$?\\0/?")}%)',
+\       'cd': '%.50(%{fnamemodify(getcwd(), ":~")}%)',
 \   },
 \}
 
