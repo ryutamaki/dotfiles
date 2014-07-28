@@ -90,8 +90,8 @@ shell_has_started_interactively() {
   [ ! -z "$PS1" ]
 }
 if ! is_screen_or_tmux_running && shell_has_started_interactively; then
-    if [ `which tmux` ]; then
-        tmux attach || tmux new-session
+    if [ `which screen` ]; then
+        screen -r || screen
     else
         echo 'Install "tmux" first'
     fi

@@ -1,0 +1,53 @@
+##-----------------------------------------------
+#   Default settings
+##-----------------------------------------------
+
+# Set default shell
+shell $SHELL
+# Desplay 256 colors
+defbce on
+term xterm-256color
+# Enable auto detach when quit terminal
+autodetach on
+# Support anothor screen
+altscreen on
+# Disappear startup_messages
+startup_message off
+# Set scrollback lines
+defscrollback 1000
+# Set log file
+logfile "$HOME/.screen/screen_history.log"
+deflog on
+
+
+##-----------------------------------------------
+#   Key bindings
+##-----------------------------------------------
+
+# Set prefix key
+escape ^Tt
+# Split settings
+bind - eval split focus screen
+bind | eval "split -v" focus screen
+# Move focus
+bind h focus left
+bind j focus down
+bind k focus up
+bind l focus right
+# Resize
+bind H resize -h -3
+bind J resize -v -3
+bind K resize -v +3
+bind L resize -h +3
+# Unbind lockscreen command
+bind x
+
+
+##-----------------------------------------------
+#   Status bar settings
+##-----------------------------------------------
+
+hardstatus on
+hardstatus alwayslastline '%{= .b}%H%{-} %L=%-w%45L>%{=u b.}%n %t%{-}%+w %-17<%=%m/%d %02c:%s'
+caption always '%?%F%{= bw}%:%{= wk}%?%2n%f%07=%t%='
+sorendition '+r .b'
