@@ -120,8 +120,6 @@ syntax on
 set title
 "" 256 colors
 set t_Co=256
-"" Background
-set background=dark
 "" Color scheme
 colorscheme molokai
 "" Display number of lines
