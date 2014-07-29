@@ -45,7 +45,7 @@ alias ll="ls -AlhFv"
 ## Set history file
 HISTFILE=~/.zsh_history
 ## Number of history stored
-HISTSIZE=10000000
+HISTSIZE=10000
 ## Number of history saved
 SAVEHIST=$HISTSIZE
 ## Store the time not only commands
