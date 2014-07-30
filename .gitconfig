@@ -5,6 +5,8 @@
     pager = lv -c
 [include]
     path = ~/.gitconfig.local
+[push]
+    default = simple
 [alias]
     a  = add
     aa = add -A
