@@ -60,8 +60,8 @@ let g:lightline = {
 
 
 NeoBundle 'tyru/caw.vim.git'
-nmap <leader>/ <Plug>(caw:i:toggle)
-vmap <leader>/ <Plug>(caw:i:toggle)
+nnoremap <leader>/ <Plug>(caw:i:toggle)
+vnoremap <leader>/ <Plug>(caw:i:toggle)
 
 
 NeoBundle 'thinca/vim-quickrun'
@@ -110,9 +110,9 @@ nnoremap j gj
 nnoremap k gk
 nnoremap <Down> gj
 nnoremap <Up> gk
-nmap <C-h> ^
-nmap <C-l> $
-imap <silent> jj <ESC>
+nnoremap <C-h> ^
+nnoremap <C-l> $
+inoremap <silent> jj <ESC>
 
 
 ""-----------------------------------------------
