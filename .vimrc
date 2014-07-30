@@ -106,6 +106,10 @@ set hlsearch
 set ignorecase
 set smartcase
 "" key remappings
+nnoremap j gj
+nnoremap k gk
+nnoremap <Down> gj
+nnoremap <Up> gk
 nmap <C-h> ^
 nmap <C-l> $
 imap <silent> jj <ESC>
