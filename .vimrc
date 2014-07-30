@@ -16,11 +16,6 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 "  NEOBundle > plugins
 ""-----------------------------------------------
 
-NeoBundle 'Shougo/neocomplcache'
-let g:acp_enableAtStartup=0
-let g:neocomplcache_enable_at_startup=1
-
-
 NeoBundle 'Shougo/unite.vim'
 NeoBundle 'Shougo/neomru.vim'
 let g:unite_source_history_yank_enable =1
