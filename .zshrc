@@ -48,6 +48,9 @@ HISTFILE=~/.zsh_history
 HISTSIZE=10000
 ## Number of history saved
 SAVEHIST=$HISTSIZE
+## History search
+bindkey '^P' history-beginning-search-backward
+bindkey '^N' history-beginning-search-forward
 ## Store the time not only commands
 setopt extended_history
 ## Share history between processes
