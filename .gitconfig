@@ -6,7 +6,7 @@
 [include]
     path = ~/.gitconfig.local
 [push]
-    default = simple
+    default = current
 [alias]
     a  = add
     aa = add -A
