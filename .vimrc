@@ -127,8 +127,6 @@ set number
 set ruler
 "" Display special characters
 set list
-"" Folding settings
-set foldmethod=indent
 "" Command line height
 set cmdheight=2
 "" Add statusline
