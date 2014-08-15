@@ -7,6 +7,7 @@ typeset -U path
 
 # Set path
 path=(
+      $HOME/local/bin(N-/)
       /usr/local/bin(N-/)
       /usr/bin(N-/)
       /bin(N-/)
