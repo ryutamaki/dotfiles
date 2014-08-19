@@ -69,7 +69,7 @@ vmap <leader>/ <Plug>(caw:i:toggle)
 
 
 NeoBundle 'thinca/vim-quickrun'
-
+NeoBundle 'mustache/vim-mustache-handlebars'
 
 ""-----------------------------------------------
 "  NEOBundle > colorschemes
