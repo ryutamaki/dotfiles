@@ -138,6 +138,7 @@ set number
 set ruler
 "" Display special characters
 set list
+set listchars=tab:»-,trail:-,eol:↲,extends:»,precedes:«,nbsp:%
 "" Command line height
 set cmdheight=2
 "" Add statusline
