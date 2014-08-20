@@ -97,6 +97,8 @@ set tabstop=4
 set shiftwidth=4
 "" Expand tab to spaces
 set expandtab
+"" Auto read if some files are overwritten in other places
+set autoread
 "" Scroll with padding
 set scrolloff=10
 "" Enable to delete tabs or breaking lines using backspace
