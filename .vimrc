@@ -118,6 +118,8 @@ nnoremap <Down> gj
 nnoremap <Up> gk
 nnoremap <C-h> ^
 nnoremap <C-l> $
+nnoremap ; :
+nnoremap : ;
 inoremap <silent> jj <ESC>
 
 
