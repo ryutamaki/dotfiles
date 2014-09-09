@@ -8,4 +8,4 @@ brew install vim
 brew install tig
 
 # For mac
-brew install reattach-to-user-namespac
+brew install reattach-to-user-namespace
