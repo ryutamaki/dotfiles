@@ -28,14 +28,6 @@ nnoremap <silent> [unite]u :<C-u>Unite buffer file_mru<CR>
 nnoremap <silent> [unite]y :<C-u>Unite history/yank<CR>
 
 
-NeoBundle 'hewes/unite-gtags'
-nnoremap <silent> [unite]gcon :<C-u>Unite gtags/context<CR>
-nnoremap <silent> [unite]gr :<C-u>Unite gtags/ref<CR>
-nnoremap <silent> [unite]gd :<C-u>Unite gtags/def<CR>
-nnoremap <silent> [unite]gg :<C-u>Unite gtags/grep<CR>
-nnoremap <silent> [unite]gcom :<C-u>Unite gtags/completion<CR>
-
-
 NeoBundle 'scrooloose/syntastic'
 let g:syntastic_enable_signs=1
 let g:syntastic_auto_loc_list=2
