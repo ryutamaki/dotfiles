@@ -100,6 +100,7 @@ nnoremap <C-h> ^
 nnoremap <C-l> $
 nnoremap ; :
 nnoremap : ;
+nnoremap * *N
 inoremap <silent> jj <ESC>
 
 
