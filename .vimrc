@@ -18,16 +18,7 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 
 NeoBundle 'scrooloose/syntastic'
 let g:syntastic_enable_signs=1
-let g:syntastic_auto_loc_list=2
-let g:syntastic_mode_map = {'mode': 'passive'}
-augroup AutoSyntastic
-    autocmd!
-    autocmd InsertLeave,TextChanged * call s:syntastic()
-augroup END
-function! s:syntastic()
-    w
-    SyntasticCheck
-endfunction
+let g:syntastic_auto_loc_list=1
 let g:syntastic_html_tidy_ignore_errors=[" proprietary attribute \"ng-"]
 
 
@@ -100,6 +91,7 @@ nnoremap <C-h> ^
 nnoremap <C-l> $
 nnoremap ; :
 nnoremap : ;
+nnoremap * *N
 inoremap <silent> jj <ESC>
 
 
