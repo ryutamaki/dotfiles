@@ -6,6 +6,9 @@ brew install git
 brew install tmux
 brew install vim
 brew install tig
+brew intsall lv
 
-# For mac
+# Sub
 brew install reattach-to-user-namespace
+brew install cocot
+brew install tree
