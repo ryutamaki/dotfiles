@@ -7,6 +7,7 @@ brew install tmux
 brew install vim
 brew install tig
 brew intsall lv
+brew install imagemagick
 
 # Sub
 brew install reattach-to-user-namespace
