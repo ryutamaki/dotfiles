@@ -84,6 +84,9 @@ set cursorline
 set hlsearch
 set ignorecase
 set smartcase
+"" Faster
+set ttyfast
+set lazyredraw
 "" key remappings
 nnoremap j gj
 nnoremap k gk
