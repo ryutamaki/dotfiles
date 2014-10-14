@@ -171,3 +171,11 @@ if has('iconv')
   unlet s:enc_euc
   unlet s:enc_jis
 endif
+
+
+""-----------------------------------------------
+"   Load local settings
+""-----------------------------------------------
+if filereadable(expand('~/.vimrc.local'))
+    source ~/.vimrc.local
+endif
