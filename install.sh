@@ -41,6 +41,7 @@ done
 
 touch $HOME/.zsh_history
 touch $HOME/.zshenv.local
+touch $HOME/.vimrc.local
 touch $HOME/.gitconfig.local
 
 ##-----------------------------------------------

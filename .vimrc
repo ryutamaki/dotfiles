@@ -17,9 +17,11 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 ""-----------------------------------------------
 
 NeoBundle 'scrooloose/syntastic'
-let g:syntastic_enable_signs=1
-let g:syntastic_auto_loc_list=1
-let g:syntastic_html_tidy_ignore_errors=[" proprietary attribute \"ng-"]
+let g:syntastic_enable_signs = 1
+let g:syntastic_error_symbol = '✗'
+let g:syntastic_warning_symbol = '⚠'
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_html_tidy_ignore_errors = [" proprietary attribute \"ng-"]
 
 
 NeoBundle 'itchyny/lightline.vim'
@@ -82,6 +84,9 @@ set cursorline
 set hlsearch
 set ignorecase
 set smartcase
+"" Faster
+set ttyfast
+set lazyredraw
 "" key remappings
 nnoremap j gj
 nnoremap k gk
@@ -168,4 +173,12 @@ if has('iconv')
   "" 定数を処分
   unlet s:enc_euc
   unlet s:enc_jis
+endif
+
+
+""-----------------------------------------------
+"   Load local settings
+""-----------------------------------------------
+if filereadable(expand('~/.vimrc.local'))
+    source ~/.vimrc.local
 endif
