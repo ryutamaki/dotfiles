@@ -8,6 +8,7 @@ brew install vim
 brew install tig
 brew intsall lv
 brew install imagemagick
+brew install jq
 
 # Sub
 brew install reattach-to-user-namespace
