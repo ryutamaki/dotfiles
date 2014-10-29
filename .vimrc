@@ -48,7 +48,7 @@ NeoBundle 'mustache/vim-mustache-handlebars'
 "  NEOBundle > colorschemes
 ""-----------------------------------------------
 
-"" molokai
+"" colorschemes
 NeoBundle 'tomasr/molokai'
 
 call neobundle#end()
@@ -110,7 +110,9 @@ set title
 "" 256 colors
 set t_Co=256
 "" Color scheme
-colorscheme molokai
+set background=dark
+highlight ColorColumn ctermbg=7
+highlight ColorColumn guibg=Gray
 "" Display number of lines
 set number
 "" Display ruler
