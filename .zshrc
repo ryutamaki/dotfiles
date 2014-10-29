@@ -8,6 +8,8 @@ bindkey -e
 
 alias g='git'
 
+alias grep='grep --color'
+
 ## move to a directory without 'cd'
 #setopt auto_cd
 alias -g ..='..'
