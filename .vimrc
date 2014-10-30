@@ -111,6 +111,7 @@ set title
 set t_Co=256
 "" Color scheme
 set background=dark
+colorscheme vimbrant
 highlight ColorColumn ctermbg=7
 highlight ColorColumn guibg=Gray
 "" Display number of lines
