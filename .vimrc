@@ -48,9 +48,6 @@ NeoBundle 'mustache/vim-mustache-handlebars'
 "  NEOBundle > colorschemes
 ""-----------------------------------------------
 
-"" colorschemes
-NeoBundle 'tomasr/molokai'
-
 call neobundle#end()
 
 filetype plugin indent on
