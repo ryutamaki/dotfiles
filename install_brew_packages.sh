@@ -10,7 +10,6 @@ brew intsall lv
 
 # Sub
 brew install reattach-to-user-namespace
-brew install cocot
 brew install tree
 brew install imagemagick
 brew install jq
