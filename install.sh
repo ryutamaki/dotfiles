@@ -10,7 +10,7 @@ files=".vim .vimrc .gitconfig .zshrc .zshenv .tmux.conf .tigrc .screenrc"
 
 echo "Creating $olddir for backup of any existing dotfiles in $HOME"
 if [ -d $olddir ]; then
-    rm -r $olddir
+    rm -rf $olddir
 fi
 mkdir -p $olddir
 echo "...done"
