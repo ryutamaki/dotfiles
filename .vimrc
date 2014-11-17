@@ -41,6 +41,11 @@ nmap <leader>/ <Plug>(caw:i:toggle)
 vmap <leader>/ <Plug>(caw:i:toggle)
 
 
+NeoBundle 'junegunn/vim-easy-align'
+vmap <Enter> <Plug>(EasyAlign)
+nmap <Leader>a <Plug>(EasyAlign)
+
+
 NeoBundle 'thinca/vim-quickrun'
 NeoBundle 'mustache/vim-mustache-handlebars'
 
