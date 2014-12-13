@@ -16,6 +16,18 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 "  NEOBundle > plugins
 ""-----------------------------------------------
 
+NeoBundle 'Shougo/unite.vim'
+NeoBundle 'Shougo/neomru.vim'
+let g:unite_source_history_yank_enable =1
+nnoremap [unite] <Nop>
+nmap <leader>u [unite]
+nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
+nnoremap <silent> [unite]m :<C-u>Unite file_mru<CR>
+nnoremap <silent> [unite]b :<C-u>Unite buffer<CR>
+nnoremap <silent> [unite]u :<C-u>Unite buffer file_mru<CR>
+nnoremap <silent> [unite]y :<C-u>Unite history/yank<CR>
+
+
 NeoBundle 'scrooloose/syntastic'
 let g:syntastic_enable_signs = 1
 let g:syntastic_error_symbol = '✗'
