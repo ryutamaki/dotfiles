@@ -17,7 +17,12 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 ""-----------------------------------------------
 
 NeoBundle 'Shougo/unite.vim'
-NeoBundle 'Shougo/neomru.vim'
+NeoBundleLazy 'Shougo/neomru.vim', {
+\   'depends': 'Shougo/unite.vim',
+\   'autoload': {
+\       'commands': 'file_mru'
+\   }
+\}
 let g:unite_source_history_yank_enable =1
 nnoremap [unite] <Nop>
 nmap <leader>u [unite]
@@ -28,7 +33,12 @@ nnoremap <silent> [unite]u :<C-u>Unite buffer file_mru<CR>
 nnoremap <silent> [unite]y :<C-u>Unite history/yank<CR>
 
 
-NeoBundle 'hewes/unite-gtags'
+NeoBundleLazy 'hewes/unite-gtags', {
+\   'depends': 'Shougo/unite.vim',
+\   'autoload': {
+\       'commands': ['gtags/context', 'gtags/ref', 'gtags/def', 'gtags/grep', 'gtags/gtags/completion']
+\   }
+\}
 nnoremap <silent> [unite]gcon :<C-u>Unite gtags/context<CR>
 nnoremap <silent> [unite]gr :<C-u>Unite gtags/ref<CR>
 nnoremap <silent> [unite]gd :<C-u>Unite gtags/def<CR>
@@ -61,13 +71,25 @@ nmap <leader>/ <Plug>(caw:i:toggle)
 vmap <leader>/ <Plug>(caw:i:toggle)
 
 
-NeoBundle 'junegunn/vim-easy-align'
+NeoBundleLazy 'junegunn/vim-easy-align', {
+\   'autoload': {
+\       'commands': 'EasyAlign'
+\   }
+\}
 vmap <Enter> <Plug>(EasyAlign)
 nmap <Leader>a <Plug>(EasyAlign)
 
 
-NeoBundle 'thinca/vim-quickrun'
-NeoBundle 'mustache/vim-mustache-handlebars'
+NeoBundleLazy 'thinca/vim-quickrun', {
+\   'autoload': {
+\       'commands': 'QuickRun'
+\   }
+\}
+NeoBundle 'mustache/vim-mustache-handlebars', {
+\   'autoload': {
+\       'filetypes': 'hbs'
+\   }
+\}
 
 ""-----------------------------------------------
 "  NEOBundle > colorschemes
