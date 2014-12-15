@@ -20,7 +20,7 @@ NeoBundle 'Shougo/unite.vim'
 NeoBundleLazy 'Shougo/neomru.vim', {
 \   'depends': 'Shougo/unite.vim',
 \   'autoload': {
-\       'commands': 'file_mru'
+\       'unite_sources': 'file_mru'
 \   }
 \}
 let g:unite_source_history_yank_enable =1
@@ -36,7 +36,7 @@ nnoremap <silent> [unite]y :<C-u>Unite history/yank<CR>
 NeoBundleLazy 'hewes/unite-gtags', {
 \   'depends': 'Shougo/unite.vim',
 \   'autoload': {
-\       'commands': ['gtags/context', 'gtags/ref', 'gtags/def', 'gtags/grep', 'gtags/gtags/completion']
+\       'unite_sources': ['gtags/context', 'gtags/ref', 'gtags/def', 'gtags/grep', 'gtags/gtags/completion']
 \   }
 \}
 nnoremap <silent> [unite]gcon :<C-u>Unite gtags/context<CR>
