@@ -73,6 +73,7 @@ vmap <leader>/ <Plug>(caw:i:toggle)
 
 NeoBundleLazy 'junegunn/vim-easy-align', {
 \   'autoload': {
+\       'mappings': '<Plug>(EasyAlign)',
 \       'commands': 'EasyAlign'
 \   }
 \}
