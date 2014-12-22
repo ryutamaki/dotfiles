@@ -123,6 +123,8 @@ set scrolloff=10
 set backspace=start,eol,indent
 "" Do not use .swp files
 set noswapfile
+"" Use single width for UTF-8 Japanese special symbol
+set ambiwidth=double
 "" show corsorline
 set cursorline
 "" search settings
