@@ -11,7 +11,6 @@ alias g='git'
 alias grep='grep --color'
 
 ## move to a directory without 'cd'
-#setopt auto_cd
 alias -g ..='..'
 alias -g ...='../..'
 alias -g ....='../../..'
@@ -72,7 +71,7 @@ compinit
 setopt no_beep
 ## Don't care the letter whichever capital or small
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
-## Complemt with clors
+## Complemt with colors
 zstyle ':completion:*' list-colors ""
 ## Desplay files classify
 zstyle ':completion:*' group-name ''
