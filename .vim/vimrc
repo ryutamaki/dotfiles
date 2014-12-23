@@ -86,7 +86,7 @@ NeoBundleLazy 'thinca/vim-quickrun', {
 \       'commands': 'QuickRun'
 \   }
 \}
-NeoBundle 'mustache/vim-mustache-handlebars', {
+NeoBundleLazy 'mustache/vim-mustache-handlebars', {
 \   'autoload': {
 \       'filetypes': 'hbs'
 \   }
