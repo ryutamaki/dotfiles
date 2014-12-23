@@ -144,6 +144,10 @@ nnoremap <C-l> $
 nnoremap ; :
 nnoremap : ;
 nnoremap * *N
+"" toggle list
+nnoremap <silent> <leader>tl :set list!<CR>
+"" toggle paste
+nnoremap <silent> <leader>tq :set paste!<CR>
 inoremap <silent> jj <ESC>
 
 
