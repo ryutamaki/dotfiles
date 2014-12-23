@@ -18,7 +18,7 @@ set scrolloff=10
 set backspace=start,eol,indent
 "" Do not use .swp files
 set noswapfile
-"" Use single width for UTF-8 Japanese special symbol
+"" Use single width for UTF-8 special symbol
 set ambiwidth=double
 "" Show corsorline
 set cursorline
@@ -26,7 +26,7 @@ set cursorline
 set hlsearch
 set ignorecase
 set smartcase
-"" Fasten
+"" Faster
 set ttyfast
 set lazyredraw
 
