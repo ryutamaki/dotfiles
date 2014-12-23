@@ -138,8 +138,12 @@ set lazyredraw
 "" Move each display lines
 nnoremap j gj
 nnoremap k gk
+vnoremap j gj
+vnoremap k gk
 nnoremap <Down> gj
 nnoremap <Up> gk
+vnoremap <Down> gj
+vnoremap <Up> gk
 "" Move cursor to the head and tail in a current line
 nnoremap <C-h> ^
 nnoremap <C-l> $
