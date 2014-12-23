@@ -86,15 +86,14 @@ NeoBundleLazy 'thinca/vim-quickrun', {
 \       'commands': 'QuickRun'
 \   }
 \}
+
+
 NeoBundleLazy 'mustache/vim-mustache-handlebars', {
 \   'autoload': {
 \       'filetypes': 'hbs'
 \   }
 \}
 
-""-----------------------------------------------
-"  NEOBundle > colorschemes
-""-----------------------------------------------
 
 call neobundle#end()
 
@@ -125,29 +124,35 @@ set backspace=start,eol,indent
 set noswapfile
 "" Use single width for UTF-8 Japanese special symbol
 set ambiwidth=double
-"" show corsorline
+"" Show corsorline
 set cursorline
-"" search settings
+"" Search settings
 set hlsearch
 set ignorecase
 set smartcase
-"" Faster
+"" Fasten
 set ttyfast
 set lazyredraw
-"" key remappings
+
+"" Key remappings
+"" Move each display lines
 nnoremap j gj
 nnoremap k gk
 nnoremap <Down> gj
 nnoremap <Up> gk
+"" Move cursor to the head and tail in a current line
 nnoremap <C-h> ^
 nnoremap <C-l> $
+"" Toggle : and ;
 nnoremap ; :
 nnoremap : ;
+"" Search a word from current position
 nnoremap * *N
-"" toggle list
+"" Toggle list
 nnoremap <silent> <leader>tl :set list!<CR>
-"" toggle paste
+"" Toggle paste
 nnoremap <silent> <leader>tq :set paste!<CR>
+"" Escape insert mode using jj
 inoremap <silent> jj <ESC>
 
 
