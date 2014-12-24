@@ -88,9 +88,10 @@ NeoBundleLazy 'thinca/vim-quickrun', {
 
 NeoBundleLazy 'mustache/vim-mustache-handlebars', {
 \   'autoload': {
-\       'filetypes': 'hbs'
+\       'filename_patterns': '.*\.hbs'
 \   }
 \}
+let g:mustache_abbreviations = 1
 
 
 call neobundle#end()
