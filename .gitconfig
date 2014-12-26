@@ -17,6 +17,8 @@
     cm = commit -m
     st = status
     co = checkout
+    cop = checkout -p
+    rp = reset -p
     br = branch
     df = diff
     dfs = diff --staged
