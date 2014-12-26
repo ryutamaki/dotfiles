@@ -11,7 +11,7 @@
     a  = add
     aa = add -A
     ap = add -p
-    c  = commit
+    c  = commit --verbose
     ca = commit --amend
     can = commit --amend --no-edit
     cm = commit -m
