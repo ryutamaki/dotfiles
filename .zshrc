@@ -11,7 +11,6 @@ alias g='git'
 alias grep='grep --color'
 alias sudo='sudo -E'
 
-## move to a directory without 'cd'
 alias -g ..='..'
 alias -g ...='../..'
 alias -g ....='../../..'
@@ -76,6 +75,10 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 zstyle ':completion:*' list-colors ""
 ## Desplay files classify
 zstyle ':completion:*' group-name ''
+## Select directory using arrow buttons
+zstyle ':completion:*' menu select
+## Show completing descriptions
+zstyle ':completion:*:descriptions' format '%BCompleting%b %U%d%u'
 
 
 ##-----------------------------------------------
