@@ -9,6 +9,7 @@ bindkey -e
 alias g='git'
 
 alias grep='grep --color'
+alias sudo='sudo -E'
 
 ## move to a directory without 'cd'
 alias -g ..='..'
