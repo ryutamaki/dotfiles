@@ -1,4 +1,6 @@
 source $HOME/dotfiles/.zsh/antigen/antigen.zsh
 ADOTDIR=$HOME/dotfiles/.zsh/.antigen
 
+antigen-bundle zsh-users/zsh-syntax-highlighting
+
 antigen-apply
