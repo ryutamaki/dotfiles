@@ -13,3 +13,4 @@ brew install reattach-to-user-namespace
 brew install tree
 brew install imagemagick
 brew install jq
+brew install ag
