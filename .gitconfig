@@ -15,6 +15,7 @@
     ca = commit --amend
     can = commit --amend --no-edit
     cm = commit -m
+    pl = pull --rebase
     st = status
     co = checkout
     cop = checkout -p
