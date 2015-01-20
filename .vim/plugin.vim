@@ -44,6 +44,37 @@ nnoremap <silent> [unite]gg :<C-u>Unite gtags/grep<CR>
 nnoremap <silent> [unite]gcom :<C-u>Unite gtags/completion<CR>
 
 
+if has('lua')
+    NeoBundleLazy 'Shougo/neocomplete.vim', {
+    \   'autoload': {
+    \       'insert': '1'
+    \   }
+    \}
+    let g:acp_enableAtStartup = 0
+    let g:neocomplete#enable_at_startup  = 1
+    let g:neocomplete#enable_smart_case  = 1
+    let g:neocomplete#max_list = 10
+    let g:neocomplete#sources#syntax#min_keyword_length = 3
+    inoremap <expr><CR>  pumvisible() ? neocomplete#smart_close_popup() : "\<CR>"
+    inoremap <expr>jj pumvisible() ? neocomplete#cancel_popup() : "\<ESC>"
+else
+    NeoBundleLazy 'Shougo/neocomplcache.vim', {
+    \   'autoload': {
+    \       'insert': '1'
+    \   }
+    \}
+    let g:neocomplcache_enable_at_startup = 1
+    let g:neocomplcache_enable_smart_case = 1
+    let g:neocomplcache_max_list = 10
+    let g:neocomplcache_enable_underbar_completion = 1
+    let g:neocomplcache_min_syntax_length = 3
+    inoremap <expr><CR>  pumvisible() ? neocomplcache#smart_close_popup() : "\<CR>"
+    inoremap <expr>jj pumvisible() ? neocomplcache#cancel_popup() : "\<ESC>"
+end
+inoremap <expr><TAB> pumvisible() ? "\<Down>" : "\<TAB>"
+inoremap <expr><S-TAB> pumvisible() ? "\<Up>" : "\<S-TAB>"
+
+
 NeoBundle 'scrooloose/syntastic'
 let g:syntastic_enable_signs = 1
 let g:syntastic_error_symbol = '✗'
