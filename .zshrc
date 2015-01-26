@@ -12,12 +12,3 @@ fi
 if [ -e ~/.zsh/antigen.zsh ]; then
     source ~/.zsh/antigen.zsh
 fi
-
-
-##------------------------------------------------
-#  include .zshenv.local
-##------------------------------------------------
-
-if [ -e ~/.zshenv.local ]; then
-    source ~/.zshenv.local
-fi

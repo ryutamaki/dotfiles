@@ -23,3 +23,12 @@ path=(
 
 export LANG=ja_JP.UTF-8
 export LC_ALL=$LANG
+
+
+##------------------------------------------------
+##  include .zshenv.local
+###------------------------------------------------
+
+if [ -e ~/.zshenv.local ]; then
+    source ~/.zshenv.local
+fi
