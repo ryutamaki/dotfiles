@@ -56,7 +56,6 @@ if has('lua')
     let g:neocomplete#max_list = 10
     let g:neocomplete#sources#syntax#min_keyword_length = 3
     inoremap <expr><CR>  pumvisible() ? neocomplete#smart_close_popup() : "\<CR>"
-    inoremap <expr>jj pumvisible() ? neocomplete#cancel_popup() : "\<ESC>"
 else
     NeoBundleLazy 'Shougo/neocomplcache.vim', {
     \   'autoload': {
@@ -69,7 +68,6 @@ else
     let g:neocomplcache_enable_underbar_completion = 1
     let g:neocomplcache_min_syntax_length = 3
     inoremap <expr><CR>  pumvisible() ? neocomplcache#smart_close_popup() : "\<CR>"
-    inoremap <expr>jj pumvisible() ? neocomplcache#cancel_popup() : "\<ESC>"
 endif
 inoremap <expr><TAB> pumvisible() ? "\<Down>" : "\<TAB>"
 inoremap <expr><S-TAB> pumvisible() ? "\<Up>" : "\<S-TAB>"
