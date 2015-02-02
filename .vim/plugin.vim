@@ -120,7 +120,6 @@ NeoBundleLazy 'mustache/vim-mustache-handlebars', {
 \       'filename_patterns': '.*\.hbs'
 \   }
 \}
-let g:mustache_abbreviations = 1
 
 
 call neobundle#end()
