@@ -43,6 +43,8 @@ vnoremap <Up> gk
 "" Move cursor to the head and tail in a current line
 nnoremap <C-h> ^
 nnoremap <C-l> $
+vnoremap <C-h> ^
+vnoremap <C-l> $
 "" Toggle : and ;
 nnoremap ; :
 nnoremap : ;
