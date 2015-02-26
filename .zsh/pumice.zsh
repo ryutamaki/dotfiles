@@ -10,6 +10,3 @@ pumice bundle zsh-users/zsh-completions src
 pumice bundle m4i/cdd cdd
 typeset -ga chpwd_functions
 chpwd_functions+=_cdd_chpwd
-
-# enhancd
-pumice bundle b4b4r07/enhancd enhancd.sh
