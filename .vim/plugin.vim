@@ -14,6 +14,17 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 "  NEOBundle > plugins
 ""-----------------------------------------------
 
+NeoBundle 'Shougo/vimproc.vim', {
+\   'build' : {
+\       'windows' : 'tools\\update-dll-mingw',
+\       'cygwin' : 'make -f make_cygwin.mak',
+\       'mac' : 'make -f make_mac.mak',
+\       'linux' : 'make',
+\       'unix' : 'gmake',
+\   },
+\}
+
+
 NeoBundle 'Shougo/unite.vim'
 NeoBundleLazy 'Shougo/neomru.vim', {
 \   'depends': 'Shougo/unite.vim',
@@ -42,6 +53,21 @@ nnoremap <silent> [unite]gr :<C-u>Unite gtags/ref<CR>
 nnoremap <silent> [unite]gd :<C-u>Unite gtags/def<CR>
 nnoremap <silent> [unite]gg :<C-u>Unite gtags/grep<CR>
 nnoremap <silent> [unite]gcom :<C-u>Unite gtags/completion<CR>
+
+
+NeoBundleLazy 'rking/ag.vim', {
+\   'depends': 'Shougo/unite.vim',
+\   'autoload': {
+\       'unite_sources': ['grep']
+\   }
+\}
+nnoremap <silent> [unite]ag :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
+nnoremap <silent> [unite]agc :<C-u>Unite grep:. -buffer-name=search-buffer<CR><C-R><C-W>
+if executable('ag')
+    let g:unite_source_grep_command = 'ag'
+    let g:unite_source_grep_default_opts = '--nogroup --nocolor --column'
+    let g:unite_source_grep_recursive_opt = ''
+endif
 
 
 if has('lua')
