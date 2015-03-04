@@ -22,6 +22,6 @@
     cop = checkout -p
     rp = reset -p
     br = branch
-    df = diff
-    dfs = diff --staged
+    df = diff --color-words
+    dfs = diff --staged --color-words
     lg = log --graph --all --format="%C(cyan)%an%Creset%x09%C(yellow)%h%Creset%x09%s"
