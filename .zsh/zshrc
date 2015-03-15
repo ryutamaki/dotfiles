@@ -58,6 +58,10 @@ setopt extended_history
 setopt share_history
 ## Add history immediately
 setopt inc_append_history
+## It does not save dupricated history
+setopt hist_ignore_dups
+setopt hist_save_no_dups
+setopt hist_ignore_all_dups
 
 
 ##-----------------------------------------------
