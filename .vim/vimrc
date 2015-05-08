@@ -51,9 +51,11 @@ nnoremap : ;
 "" Search a word from current position
 nnoremap * *N
 "" Toggle list
-nnoremap <silent> <leader>tl :set list!<CR>
+nnoremap [toggle] <Nop>
+nmap <leader>t [toggle]
+nnoremap <silent> [toggle]l :set list!<CR>
 "" Toggle paste
-nnoremap <silent> <leader>tp :set paste!<CR>
+nnoremap <silent> [toggle]p :set paste!<CR>
 "" Escape insert mode using jj
 inoremap <silent> jj <ESC>
 
