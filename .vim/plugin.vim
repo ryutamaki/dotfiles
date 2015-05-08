@@ -120,6 +120,22 @@ let g:lightline = {
 \}
 
 
+NeoBundleLazy 'nathanaelkane/vim-indent-guides', {
+\   'autoload': {
+\       'mappings': '<Plug>IndentGuidesToggle',
+\       'commands': 'IndentGuidesToggle'
+\   }
+\}
+" Re-declare default key mappings to use NeoBundleLazy
+nmap <leader>ig <Plug>IndentGuidesToggle
+let g:indent_guides_auto_colors = 0
+autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  ctermbg=235
+autocmd VimEnter,Colorscheme * :hi IndentGuidesEven ctermbg=236
+let g:indent_guides_start_level = 2
+let g:indent_guides_guide_size = 1
+let g:indent_guides_color_change_percent = 1
+
+
 NeoBundle 'tyru/caw.vim.git'
 nmap <leader>/ <Plug>(caw:i:toggle)
 vmap <leader>/ <Plug>(caw:i:toggle)
