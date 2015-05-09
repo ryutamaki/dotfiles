@@ -81,6 +81,7 @@ zstyle ':completion:*' list-colors ""
 zstyle ':completion:*' group-name ''
 ## Select directory using arrow buttons
 zstyle ':completion:*' menu select
+bindkey '^[[Z' reverse-menu-complete
 ## Show completing descriptions
 zstyle ':completion:*:descriptions' format '%BCompleting%b %U%d%u'
 
