@@ -35,11 +35,11 @@ NeoBundleLazy 'Shougo/neomru.vim', {
 let g:unite_source_history_yank_enable = 1
 nnoremap [unite] <Nop>
 nmap <leader>u [unite]
-nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
-nnoremap <silent> [unite]m :<C-u>Unite file_mru<CR>
-nnoremap <silent> [unite]b :<C-u>Unite buffer<CR>
-nnoremap <silent> [unite]u :<C-u>Unite buffer file_mru<CR>
-nnoremap <silent> [unite]y :<C-u>Unite history/yank<CR>
+nnoremap [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
+nnoremap [unite]m :<C-u>Unite file_mru<CR>
+nnoremap [unite]b :<C-u>Unite buffer<CR>
+nnoremap [unite]u :<C-u>Unite buffer file_mru<CR>
+nnoremap [unite]y :<C-u>Unite history/yank<CR>
 
 
 NeoBundleLazy 'hewes/unite-gtags', {
@@ -48,11 +48,11 @@ NeoBundleLazy 'hewes/unite-gtags', {
 \       'unite_sources': ['gtags/context', 'gtags/ref', 'gtags/def', 'gtags/grep', 'gtags/gtags/completion']
 \   }
 \}
-nnoremap <silent> [unite]gcon :<C-u>Unite gtags/context<CR>
-nnoremap <silent> [unite]gr :<C-u>Unite gtags/ref<CR>
-nnoremap <silent> [unite]gd :<C-u>Unite gtags/def<CR>
-nnoremap <silent> [unite]gg :<C-u>Unite gtags/grep<CR>
-nnoremap <silent> [unite]gcom :<C-u>Unite gtags/completion<CR>
+nnoremap [unite]gcon :<C-u>Unite gtags/context<CR>
+nnoremap [unite]gr :<C-u>Unite gtags/ref<CR>
+nnoremap [unite]gd :<C-u>Unite gtags/def<CR>
+nnoremap [unite]gg :<C-u>Unite gtags/grep<CR>
+nnoremap [unite]gcom :<C-u>Unite gtags/completion<CR>
 
 
 NeoBundleLazy 'rking/ag.vim', {
@@ -61,8 +61,8 @@ NeoBundleLazy 'rking/ag.vim', {
 \       'unite_sources': ['grep']
 \   }
 \}
-nnoremap <silent> [unite]ag :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
-nnoremap <silent> [unite]agc :<C-u>Unite grep:. -buffer-name=search-buffer<CR><C-R><C-W>
+nnoremap [unite]ag :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
+nnoremap [unite]agc :<C-u>Unite grep:. -buffer-name=search-buffer<CR><C-R><C-W>
 if executable('ag')
     let g:unite_source_grep_command = 'ag'
     let g:unite_source_grep_default_opts = '--nogroup --nocolor --column'

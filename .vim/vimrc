@@ -53,11 +53,11 @@ nnoremap * *N
 "" Toggle list
 nnoremap [toggle] <Nop>
 nmap <leader>t [toggle]
-nnoremap <silent> [toggle]l :set list!<CR>
-nnoremap <silent> [toggle]p :set paste!<CR>
-nnoremap <silent> [toggle]w :set wrap!<CR>
+nnoremap [toggle]l :set list!<CR>
+nnoremap [toggle]p :set paste!<CR>
+nnoremap [toggle]w :set wrap!<CR>
 "" Escape insert mode using jj
-inoremap <silent> jj <ESC>
+inoremap jj <ESC>
 
 
 ""-----------------------------------------------
