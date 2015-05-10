@@ -101,23 +101,46 @@ inoremap <expr><S-TAB> pumvisible() ? "\<Up>" : "\<S-TAB>"
 
 
 NeoBundle 'scrooloose/syntastic'
+let g:syntastic_check_on_open = 1
 let g:syntastic_enable_signs = 1
 let g:syntastic_error_symbol = '✗'
 let g:syntastic_warning_symbol = '⚠'
-let g:syntastic_auto_loc_list = 1
 let g:syntastic_html_tidy_ignore_errors = [" proprietary attribute \"ng-"]
+augroup AutoSyntastic
+    autocmd!
+    autocmd BufWritePost * call s:syntastic()
+augroup END
+function! s:syntastic()
+    SyntasticCheck
+    call lightline#update()
+endfunction
 
 
 NeoBundle 'itchyny/lightline.vim'
 let g:lightline = {
 \   'active': {
-\       'left': [ [ 'mode', 'paste' ], [ 'cd', 'dir', 'filename', 'modified' ] ],
+\       'left': [ [ 'mode', 'paste' ], [ 'readonly', 'dir', 'noname', 'modified' ] ],
+\       'right': [ ['percent', 'lineinfo'], ['fileformat', 'filetype', 'fileencoding'], ['syntastic'] ],
 \   },
 \   'component': {
-\       'dir': '%.50(%{expand("%:h:s?\\S$?\\0/?")}%)',
-\       'cd': '%.50(%{fnamemodify(getcwd(), ":~")}%)',
+\       'dir': '%{fnamemodify(getcwd(), ":~") . "/" . expand("%")}',
+\   },
+\   'component_expand': {
+\       'noname': 'NoName',
+\       'syntastic': 'SyntasticStatuslineFlag',
+\   },
+\   'component_type': {
+\       'noname': 'warning',
+\       'syntastic': 'error',
 \   },
 \}
+function! NoName()
+    if '' == expand('%')
+        return '[NO NAME]'
+    else
+        return ''
+    fi
+endfunction
 
 
 NeoBundleLazy 'nathanaelkane/vim-indent-guides', {
