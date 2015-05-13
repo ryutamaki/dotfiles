@@ -102,8 +102,8 @@ inoremap <expr><S-TAB> pumvisible() ? "\<Up>" : "\<S-TAB>"
 NeoBundle 'scrooloose/syntastic'
 let g:syntastic_check_on_open = 1
 let g:syntastic_enable_signs = 1
-let g:syntastic_error_symbol = '✗'
-let g:syntastic_warning_symbol = '⚠'
+let g:syntastic_error_symbol = 'E'
+let g:syntastic_warning_symbol = 'W'
 let g:syntastic_html_tidy_ignore_errors = [" proprietary attribute \"ng-"]
 augroup AutoSyntastic
     autocmd!
