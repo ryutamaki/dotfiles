@@ -62,7 +62,6 @@ NeoBundleLazy 'rking/ag.vim', {
 \   }
 \}
 nnoremap [unite]ag :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
-nnoremap [unite]agc :<C-u>Unite grep:. -buffer-name=search-buffer<CR><C-R><C-W>
 if executable('ag')
     let g:unite_source_grep_command = 'ag'
     let g:unite_source_grep_default_opts = '--nogroup --nocolor --column'
