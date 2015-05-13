@@ -158,6 +158,9 @@ let g:indent_guides_guide_size = 1
 let g:indent_guides_color_change_percent = 1
 
 
+NeoBundle 'ntpeters/vim-better-whitespace'
+
+
 NeoBundle 'tyru/caw.vim.git'
 nmap <leader>/ <Plug>(caw:i:toggle)
 vmap <leader>/ <Plug>(caw:i:toggle)
