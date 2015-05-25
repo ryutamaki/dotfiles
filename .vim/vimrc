@@ -62,6 +62,9 @@ nnoremap [toggle]p :set paste!<CR>
 nnoremap [toggle]w :set wrap!<CR>
 "" Escape insert mode using jj
 inoremap jj <ESC>
+"" Replace command snippets
+nnoremap gs  :<C-u>%s///g<Left><Left><Left>
+vnoremap gs  :s///g<Left><Left><Left>
 
 
 ""-----------------------------------------------
