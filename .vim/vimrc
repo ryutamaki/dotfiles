@@ -30,7 +30,11 @@ set smartcase
 set ttyfast
 set lazyredraw
 
-"" Key remappings
+
+""-----------------------------------------------
+"  Key remappings
+""-----------------------------------------------
+
 "" Move each display lines
 nnoremap j gj
 nnoremap k gk
@@ -45,12 +49,12 @@ nnoremap <C-h> ^
 nnoremap <C-l> $
 vnoremap <C-h> ^
 vnoremap <C-l> $
-"" Toggle : and ;
+"" Exchange : and ;
 nnoremap ; :
 nnoremap : ;
 "" Search a word from current position
 nnoremap * *N
-"" Toggle list
+"" Toggle settings
 nnoremap [toggle] <Nop>
 nmap <leader>t [toggle]
 nnoremap [toggle]l :set list!<CR>
