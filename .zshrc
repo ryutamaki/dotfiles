@@ -17,7 +17,9 @@ fi
 ##------------------------------------------------
 #  include .zsh/fzf.zsh
 ##------------------------------------------------
+if [ -f ~/.fzf.zsh ]; then
+    source ~/.fzf.zsh
+fi
 if [ -e ~/.zsh/fzf.zsh ]; then
     source ~/.zsh/fzf.zsh
 fi
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

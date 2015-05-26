@@ -1,34 +1,36 @@
-# Copy from the URL below
+# Refer to URLs below
 # https://github.com/junegunn/fzf/wiki/Examples
+# https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh
+# https://github.com/gotbletu/shownotes/blob/master/fzf.txt
 
-# fe [FUZZY PATTERN] - Open the selected file with the default editor
-#   - Bypass fuzzy finder if there's only one match (--select-1)
-#   - Exit if there's no match (--exit-0)
-fe() {
-  local file
-  file=$(fzf --query="$1" --select-1 --exit-0)
-  [ -n "$file" ] && ${EDITOR:-vim} "$file"
+# fzf-editor-open-widget
+function fzf-editor-open-widget() {
+    local file=$(__fsel)
+    if [ -n "$file" ]; then
+        LBUFFER="${LBUFFER}${EDITOR:-vim} ${file}"
+        zle redisplay
+    fi
 }
+zle -N fzf-editor-open-widget
+bindkey '^o' fzf-editor-open-widget
 
-# fd - cd to selected directory
-fd() {
-  local dir
-  dir=$(find ${1:-*} -path '*/\.*' -prune \
-                  -o -type d -print 2> /dev/null | fzf +m) &&
-  cd "$dir"
+# fzf-cd-widget - cd to selected directory
+function fzf-cd-widget() {
+    local dir=$(find ${1:-.} -type d 2> /dev/null | fzf-tmux +m)
+    if [ -n "$dir" ]; then
+        cd "$dir"
+        zle reset-prompt
+    fi
 }
+zle -N fzf-cd-widget
+bindkey '^j' fzf-cd-widget
+bindkey -r '^T' # remove default setting
 
-# fda - including hidden directories
-fda() {
-  local dir
-  dir=$(find ${1:-.} -type d 2> /dev/null | fzf +m) && cd "$dir"
+# fzf-file-widget
+# if you add key binds when installing fzf, this function below is redefined
+fzf-file-widget() {
+    LBUFFER="${LBUFFER}$(__fsel)"
+    zle redisplay
 }
-
-# fbr - checkout git branch (including remote branches)
-fbr() {
-  local branches branch
-  branches=$(git branch --all | grep -v HEAD) &&
-  branch=$(echo "$branches" |
-           fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
-  git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
-}
+zle     -N   fzf-file-widget
+bindkey '^z' fzf-file-widget
