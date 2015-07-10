@@ -33,11 +33,3 @@ cnoremap <C-e> <End>
 cnoremap <C-f> <Right>
 cnoremap <C-n> <Down>
 cnoremap <C-p> <Up>
-
-
-""-----------------------------------------------
-"  Display settings
-""-----------------------------------------------
-
-" For selection
-set background=dark
