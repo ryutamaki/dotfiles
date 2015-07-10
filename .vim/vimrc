@@ -26,6 +26,7 @@ set cursorline
 set hlsearch
 set ignorecase
 set smartcase
+set incsearch
 "" Faster
 set ttyfast
 set lazyredraw
