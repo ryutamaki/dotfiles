@@ -1,6 +1,9 @@
 ## Use emacs keybind
 bindkey -e
 
+## silence
+setopt nobeep
+
 
 ##-----------------------------------------------
 #  aliases
