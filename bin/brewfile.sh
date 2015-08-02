@@ -14,3 +14,4 @@ brew install tree
 brew install imagemagick
 brew install jq
 brew install ag
+brew install mycli
