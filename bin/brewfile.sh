@@ -1,4 +1,6 @@
-ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
+if ! [ `which brew` ]; then
+    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+fi
 
 # Priority
 brew install zsh
