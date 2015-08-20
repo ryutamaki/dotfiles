@@ -17,3 +17,4 @@ brew install imagemagick
 brew install jq
 brew install ag
 brew install mycli
+brew install thefuck
