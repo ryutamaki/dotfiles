@@ -14,7 +14,7 @@ git submodule update
 
 dir=$HOME/dotfiles
 olddir=$HOME/dotfiles_old
-files=".vim .vimrc .xvimrc .gitconfig .zsh .zshrc .zshenv .tmux.conf .tigrc .screenrc .uncrustify"
+files=".vim .vimrc .xvimrc .ideavimrc .gitconfig .zsh .zshrc .zshenv .tmux.conf .tigrc .screenrc .uncrustify"
 
 echo "Creating $olddir for backup of any existing dotfiles in $HOME"
 if [ -d $olddir ]; then
