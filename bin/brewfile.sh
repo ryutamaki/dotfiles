@@ -8,7 +8,7 @@ brew install git
 brew install tmux
 brew install vim
 brew install tig
-brew intsall lv
+brew install lv
 
 # Sub
 brew install reattach-to-user-namespace
