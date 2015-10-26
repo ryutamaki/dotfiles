@@ -14,7 +14,7 @@ alias g='git'
 alias grep='grep --color'
 alias sudo='sudo -E'
 
-alias tmux='tmux a || tmux'
+alias t='tmux a || tmux'
 
 alias -g ..='..'
 alias -g ...='../..'
