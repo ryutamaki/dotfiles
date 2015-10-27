@@ -75,12 +75,13 @@ if has('lua')
     \       'insert': '1'
     \   }
     \}
-    let g:acp_enableAtStartup = 0
+    let g:acp_enableAtStartup = 1
     let g:neocomplete#enable_at_startup  = 1
     let g:neocomplete#enable_smart_case  = 1
     let g:neocomplete#max_list = 10
+    let g:neocomplete#enable_fuzzy_completion = 1
     let g:neocomplete#sources#syntax#min_keyword_length = 3
-    inoremap <expr><CR>  pumvisible() ? neocomplete#smart_close_popup() : "\<CR>"
+    inoremap <expr><CR>  pumvisible() ? neocomplete#close_popup() : "\<CR>"
 else
     NeoBundleLazy 'Shougo/neocomplcache.vim', {
     \   'autoload': {
