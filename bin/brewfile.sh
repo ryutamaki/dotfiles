@@ -18,3 +18,4 @@ brew install jq
 brew install ag
 brew install mycli
 brew install thefuck
+brew install n
