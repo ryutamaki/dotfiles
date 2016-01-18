@@ -3,34 +3,45 @@
 # https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh
 # https://github.com/gotbletu/shownotes/blob/master/fzf.txt
 
-# fzf-editor-open-widget
-function fzf-editor-open-widget() {
+# fvim
+function fvim fzf-editor-open-widget() {
     local file=$(__fsel)
     if [ -n "$file" ]; then
-        LBUFFER="${LBUFFER}${EDITOR:-vim} ${file}"
-        zle redisplay
+        print -z "${LBUFFER}${EDITOR:-vim} ${file}"
     fi
 }
-zle -N fzf-editor-open-widget
-bindkey '^o' fzf-editor-open-widget
 
-# fzf-cd-widget - cd to selected directory
-function fzf-cd-widget() {
-    local dir=$(find ${1:-.} -type d 2> /dev/null | fzf-tmux +m)
-    if [ -n "$dir" ]; then
-        cd "$dir"
-        zle reset-prompt
+# fd - cd to selected directory
+function fd() {
+    local dir=$(find ${1:-*} -path '*/\.*' -prune -o -type d -print 2> /dev/null | fzf +m) &&
+    print -z "cd ${dir}"
+}
+
+# fda - including hidden directories
+function fda() {
+    local dir=$(find ${1:-.} -type d 2> /dev/null | fzf +m) &&
+    print -z "cd ${dir}"
+}
+
+# fgbr - checkout git branch
+function fgbr() {
+    local branches branch
+    branches=$(git branch) &&
+    branch=$(echo "$branches" | fzf +m) &&
+    print -z "git checkout $(echo "$branch" | awk '{print $1}' | sed 's/.* //')"
+}
+
+# z - z with fzf
+unalias z 2> /dev/null
+z() {
+    if [[ -z "$*" ]]; then
+        cd "$(_z -l 2>&1 | fzf +s --tac | sed 's/^[0-9,.]* *//')"
+    else
+        _last_z_args="$@"
+        _z "$@"
     fi
 }
-zle -N fzf-cd-widget
-bindkey '^j' fzf-cd-widget
-bindkey -r '^T' # remove default setting
 
-# fzf-file-widget
-# if you add key binds when installing fzf, this function below is redefined
-fzf-file-widget() {
-    LBUFFER="${LBUFFER}$(__fsel)"
-    zle redisplay
+zz() {
+    cd "$(_z -l 2>&1 | sed 's/^[0-9,.]* *//' | fzf -q $_last_z_args)"
 }
-zle     -N   fzf-file-widget
-bindkey '^z' fzf-file-widget
