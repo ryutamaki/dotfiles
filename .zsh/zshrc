@@ -90,31 +90,6 @@ zstyle ':completion:*:descriptions' format '%BCompleting%b %U%d%u'
 
 
 ##-----------------------------------------------
-#  tmux auto start
-##-----------------------------------------------
-
-# is_screen_running() {
-#   [ ! -z "$WINDOW" ]
-# }
-# is_tmux_running() {
-#   [ ! -z "$TMUX" ]
-# }
-# is_screen_or_tmux_running() {
-#   is_screen_running || is_tmux_running
-# }
-# shell_has_started_interactively() {
-#   [ ! -z "$PS1" ]
-# }
-# if ! is_screen_or_tmux_running && shell_has_started_interactively; then
-#     if [ `which tmux` ]; then
-#         tmux attach || tmux new-session
-#     else
-#         echo 'Install "tmux" first'
-#     fi
-# fi
-
-
-##-----------------------------------------------
 #  Pronpt settings
 #  Refer to clear-code/zsh.d
 ##-----------------------------------------------
