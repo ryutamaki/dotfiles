@@ -106,6 +106,8 @@ let g:syntastic_enable_signs = 1
 let g:syntastic_error_symbol = 'E'
 let g:syntastic_warning_symbol = 'W'
 let g:syntastic_html_tidy_ignore_errors = [" proprietary attribute \"ng-"]
+let g:syntastic_enable_perl_checker = 1
+
 augroup AutoSyntastic
     autocmd!
     autocmd BufWritePost * call s:syntastic()
@@ -187,6 +189,13 @@ NeoBundleLazy 'thinca/vim-quickrun', {
 NeoBundleLazy 'mustache/vim-mustache-handlebars', {
 \   'autoload': {
 \       'filename_patterns': '.*\.hbs'
+\   }
+\}
+
+
+NeoBundleLazy 'leafgarland/typescript-vim', {
+\   'autoload': {
+\       'filename_patterns': '.*\.ts'
 \   }
 \}
 
