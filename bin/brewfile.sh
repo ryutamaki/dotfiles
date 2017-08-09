@@ -9,10 +9,10 @@ brew install tmux
 brew install vim
 brew install tig
 brew install lv
+brew install exa
 
 # Sub
 brew install reattach-to-user-namespace
-brew install tree
 brew install imagemagick
 brew install jq
 brew install ag
