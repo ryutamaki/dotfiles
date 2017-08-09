@@ -13,9 +13,5 @@ brew install exa
 
 # Sub
 brew install reattach-to-user-namespace
-brew install imagemagick
 brew install jq
 brew install ag
-brew install mycli
-brew install thefuck
-brew install n
