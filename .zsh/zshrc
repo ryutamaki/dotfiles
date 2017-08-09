@@ -10,7 +10,7 @@ setopt nobeep
 ##------------------------------------------------
 
 alias g='git'
-
+alias ls='exa'
 alias grep='grep --color'
 alias sudo='sudo -E'
 
@@ -24,24 +24,6 @@ alias -g ......='../../../../..'
 alias -g ......='../../../../../..'
 alias -g .......='../../../../../../..'
 alias -g ........='../../../../../../../..'
-
-
-##-----------------------------------------------
-#  ls settings
-##-----------------------------------------------
-
-## ls with colors
-case $(uname) in
-    *BSD|Darwin)
-    alias ls="ls -G"
-    ;;
-    *)
-    alias ls="ls --color=auto"
-    ;;
-esac
-
-alias la="ls -A"
-alias ll="ls -AlhFv"
 
 
 ##-----------------------------------------------
