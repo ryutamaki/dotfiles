@@ -1,9 +1,8 @@
 if ! [ `which brew` ]; then
-    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
 # Priority
-brew install zsh
 brew install git
 brew install tmux
 brew install vim
