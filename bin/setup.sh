@@ -43,17 +43,6 @@ touch $HOME/.vimrc.local
 touch $HOME/.gitconfig.local
 
 ##-----------------------------------------------
-#  Install NEOBundle
-##-----------------------------------------------
-
-if [ -e /usr/bin/curl ] || [ -e /bin/curl ]; then
-    curl https://raw.githubusercontent.com/Shougo/neobundle.vim/master/bin/install.sh | sh
-else
-    echo "You should install 'curl' due to install NEOBunbdle."
-    exit
-fi
-
-##-----------------------------------------------
 #  Install fzf
 ##-----------------------------------------------
 
