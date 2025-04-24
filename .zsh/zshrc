@@ -10,7 +10,6 @@ setopt nobeep
 ##------------------------------------------------
 
 alias g='git'
-alias ls='exa'
 alias grep='grep --color'
 alias sudo='sudo -E'
 
