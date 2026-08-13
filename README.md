@@ -55,10 +55,12 @@ These cannot be automated:
       ```toml
       # ~/.codex/config.toml -- codex has no command hook, so it gets the
       # nearest built-in items instead. `/statusline` edits the same list.
+      # No five-hour-limit: that window does not exist on this plan, and the
+      # item is simply omitted when its data is unavailable.
       [tui]
       status_line = [
-          "model-with-reasoning", "context-used", "five-hour-limit",
-          "weekly-limit", "current-dir", "git-branch", "pull-request-number",
+          "model-with-reasoning", "context-used", "weekly-limit",
+          "current-dir", "git-branch", "pull-request-number",
       ]
       status_line_use_colors = false
       ```
