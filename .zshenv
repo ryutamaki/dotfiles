@@ -1,20 +1,26 @@
 ##-----------------------------------------------
+#  Homebrew environment
+#
+#  Set statically instead of `eval "$(brew shellenv)"` so that no subprocess
+#  is spawned for every zsh invocation. PATH itself lives in .zsh/path.zsh.
+##-----------------------------------------------
+
+if [ -d /opt/homebrew ]; then
+    export HOMEBREW_PREFIX=/opt/homebrew
+    export HOMEBREW_CELLAR=/opt/homebrew/Cellar
+    export HOMEBREW_REPOSITORY=/opt/homebrew
+    export MANPATH="/opt/homebrew/share/man${MANPATH+:$MANPATH}:"
+    export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
+fi
+
+
+##-----------------------------------------------
 #  Path settings
 ##-----------------------------------------------
 
-# Don't set duplicated paths
-typeset -U path
-
-# Set path
-path=(
-      $HOME/local/bin(N-/)
-      /usr/local/bin(N-/)
-      /usr/bin(N-/)
-      /bin(N-/)
-      /usr/local/sbin(N-/)
-      /usr/sbin(N-/)
-      /sbin(N-/)
-)
+if [ -e ~/.zsh/path.zsh ]; then
+    source ~/.zsh/path.zsh
+fi
 
 
 ##-----------------------------------------------

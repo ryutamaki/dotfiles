@@ -54,6 +54,8 @@ setopt hist_ignore_all_dups
 #  Complement settings
 ##-----------------------------------------------
 
+## zsh-completions (Homebrew) must be on fpath before compinit runs
+fpath=(${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh-completions(N-/) $fpath)
 ## Initialize
 autoload -Uz compinit
 compinit
@@ -71,15 +73,15 @@ zstyle ':completion:*:descriptions' format '%BCompleting%b %U%d%u'
 
 
 ##-----------------------------------------------
-#  Pronpt settings
+#  Prompt settings
 #  Refer to clear-code/zsh.d
 ##-----------------------------------------------
 
-## PROMPT$BFb$GJQ?tE83+!&%3%^%s%ICV49!&;;=Q1i;;$r<B9T$9$k!#(B
+## PROMPT内で変数展開・コマンド置換・算術演算を実行する。
 setopt prompt_subst
-## PROMPT$BFb$G!V(B%$B!WJ8;z$+$i;O$^$kCV495!G=$rM-8z$K$9$k!#(B
+## PROMPT内で「%」文字から始まる置換機能を有効にする。
 setopt prompt_percent
-## $B%3%T%Z$7$d$9$$$h$&$K%3%^%s%I<B9T8e$O1&%W%m%s%W%H$r>C$9!#(B
+## コピペしやすいようにコマンド実行後は右プロンプトを消す。
 setopt transient_rprompt
 
 ## Decide prompt looks

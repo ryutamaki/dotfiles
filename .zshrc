@@ -7,29 +7,30 @@ fi
 
 
 ##------------------------------------------------
-#  include .zsh/pumice.zsh
+#  include .zsh/plugins.zsh
 ##------------------------------------------------
-if [ -e ~/.zsh/pumice.zsh ]; then
-    source ~/.zsh/pumice.zsh
+if [ -e ~/.zsh/plugins.zsh ]; then
+    source ~/.zsh/plugins.zsh
 fi
 
 
 ##------------------------------------------------
-#  include .zsh/fzf.zsh
+#  fzf
+#  Shell integration comes straight from the Homebrew binary, so there is no
+#  generated ~/.fzf.zsh to keep in sync any more.
 ##------------------------------------------------
-if [ -f ~/.fzf.zsh ]; then
-    source ~/.fzf.zsh
+if command -v fzf > /dev/null; then
+    source <(fzf --zsh)
 fi
 if [ -e ~/.zsh/fzf.zsh ]; then
     source ~/.zsh/fzf.zsh
 fi
 
-##------------------------------------------------
-#  Paths that must be prepended in interactive shells
-#  (moved into .zshenv in a later commit)
-##------------------------------------------------
-export PATH="$HOME/.local/bin:$PATH"
-export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
 
-# fnm (Node version manager) — .nvmrc / .node-version を読んで cd 時に自動切替
-eval "$(fnm env --use-on-cd)"
+##------------------------------------------------
+#  Node version manager. Replaced by mise in a later commit.
+#  Reads .nvmrc / .node-version and switches on cd.
+##------------------------------------------------
+if command -v fnm > /dev/null; then
+    eval "$(fnm env --use-on-cd)"
+fi

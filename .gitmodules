@@ -1,4 +1,0 @@
-[submodule ".zsh/pumice"]
-    path = .zsh/pumice
-    url = https://github.com/ryutamaki/pumice.git
-    ignore = dirty
