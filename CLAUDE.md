@@ -69,6 +69,23 @@ symlinked. Each tool rewrites its own file, and each holds credentials or
 per-directory trust levels that do not belong in a public repo. `setup.sh`
 leaves them alone; wiring them up is a manual step in README.md.
 
+## Two agent skills are written here, the rest are installed
+
+`~/.agents/skills` is where the installed skills live, and it is not a git
+repository. Nearly all of them come from a single upstream repository, so
+`setup.sh` restores them with one `skills add` and nothing more is needed here
+than `claude/skill-lock.json` as the record of what was installed and when.
+That installer only fetches current, which puts skills in the same category as
+`claude` and `cursor-agent`: reproducible, not pinnable.
+
+`claude/skills/cleanup` and `claude/skills/audit-memory` are the exceptions.
+Both are authored, both are absent from that lockfile, and until they were
+tracked they existed on exactly one disk. They are symlinked into
+`~/.claude/skills` like everything else here.
+
+Anything written rather than installed belongs in this repository for the same
+reason. The test is whether `skills add` could produce it again.
+
 ## LANG is set, LC_ALL is not
 
 `.zshenv` exports `LANG` and stops there. `LC_ALL` outranks every other locale

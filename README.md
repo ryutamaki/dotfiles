@@ -77,6 +77,8 @@ These cannot be automated:
 | `config/git/ignore` | Global gitignore. Symlinked to `~/.config/git/ignore`, which git reads by default |
 | `.zsh/path.zsh` | **The only place PATH is defined.** Sourced from both `.zshenv` and `.zprofile` |
 | `.zsh/plugins.zsh` | zsh plugins, all installed by `brew bundle` |
+| `claude/skills/` | The agent skills written here rather than installed. Symlinked into `~/.claude/skills` |
+| `claude/skill-lock.json` | Record of the installed skills `setup.sh` restores from upstream |
 | `bin/statusline.py` | The status line `claude` and `cursor-agent` both draw. `codex` gets the nearest built-in items |
 | `Brewfile` | Everything installed on a fresh machine |
 | `CLAUDE.md` | The rules an AI should not break when editing this repo |

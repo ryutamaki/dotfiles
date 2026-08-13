@@ -85,6 +85,12 @@ link config/ghostty/config  "$HOME/.config/ghostty/config"
 link config/git/ignore      "$HOME/.config/git/ignore"
 link config/mise/config.toml "$HOME/.config/mise/config.toml"
 
+# The two agent skills that are written here rather than installed. Everything
+# else under ~/.agents/skills comes from upstream and is reinstalled further
+# down; these two appear in no lockfile and exist nowhere but this repository.
+link claude/skills/cleanup      "$HOME/.claude/skills/cleanup"
+link claude/skills/audit-memory "$HOME/.claude/skills/audit-memory"
+
 
 ##-----------------------------------------------
 #  Machine local files (never committed)
@@ -146,6 +152,31 @@ fi
 if ! command -v cursor-agent > /dev/null; then
     info "installing cursor-agent"
     curl -fsS https://cursor.com/install | bash
+fi
+
+
+##-----------------------------------------------
+#  Agent skills
+#
+#  The installed skills under ~/.agents/skills all come from one upstream
+#  repository, so restoring them is one command rather than a list.
+#  claude/skill-lock.json is the tracked record of which skills were installed
+#  and at which commit, but `skills add` only ever fetches current -- the same
+#  situation as claude and cursor-agent above -- so the lockfile is a manifest
+#  to read, not a version this can pin to.
+#
+#  --all is `--skill '*' --agent '*' -y`, which is how they were installed:
+#  every skill in the repository, exposed to every agent on the machine.
+#
+#  The two skills missing from that lockfile are authored in this repository
+#  and are symlinked into place by the link lines further up instead.
+##-----------------------------------------------
+
+if [ -d "$HOME/.agents/skills" ]; then
+    info "agent skills already installed"
+else
+    info "installing agent skills from mattpocock/skills"
+    npx -y skills add mattpocock/skills --global --all
 fi
 
 
