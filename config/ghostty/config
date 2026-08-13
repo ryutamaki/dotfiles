@@ -25,6 +25,29 @@
 
 theme = light:TokyoNight Day,dark:TokyoNight
 
+# The split divider, and the one hardcoded color in this setup.
+#
+# Ghostty leaves split-divider-color empty by default and derives the line from
+# the background, which on TokyoNight puts it within a hair of #1a1b26 -- the
+# divider is effectively invisible. It has to be stated explicitly.
+#
+# It cannot be stated the way everything else here gets its colors. The option
+# takes a literal only: a palette index (`8`) and an ANSI name (`bright-black`)
+# are both rejected, so it cannot point at a terminal slot. Nor can it be given
+# per appearance -- `theme` is the only key that accepts a `light:,dark:` pair,
+# and Ghostty has no conditional config -- so one value has to serve both
+# halves of the pair above.
+#
+# #6172b0 is that value. It is TokyoNight Day's palette 7 rather than an
+# invented color, and being a mid tone it clears both backgrounds by a similar
+# margin: 3.70 contrast against dark #1a1b26, 3.57 against light #e1e2e7. Every
+# darker or lighter candidate wins one background by losing the other -- the
+# theme's own bright black, #414868, drops to 1.91 on dark.
+#
+# This is the one line that does not follow the theme. Changing the theme pair
+# above means checking this value against the new backgrounds.
+split-divider-color = #6172b0
+
 # The font *family* is deliberately left unset: Ghostty's built-in default is
 # fine and one less thing to install on a new machine. Only the size moves,
 # one step down from the default 13.
