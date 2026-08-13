@@ -1,0 +1,32 @@
+# Ghostty -- symlinked to ~/.config/ghostty/config by bin/setup.sh
+#
+# THIS FILE IS THE ONLY PLACE COLORS ARE DEFINED.
+#
+# Everything that draws in the terminal inherits the 16 ANSI colors from the
+# theme below instead of carrying a palette of its own:
+#   - Claude Code   "theme": "dark-ansi"   in ~/.claude/settings.json
+#   - vim           no colorscheme, no t_Co (see .vim/vimrc)
+#   - git-delta     syntax-theme disabled  (see .gitconfig)
+#   - fzf / tig     no color options set
+#
+# To change the look of every one of them, change the one line below.
+# `ghostty +list-themes` shows what is available.
+
+theme = Iceberg Dark
+
+# Font is deliberately left unset: Ghostty's built-in default is fine and one
+# less thing to install on a new machine.
+
+# Let Ghostty know where the prompt starts and ends. This is what makes new
+# tabs and splits inherit the current directory, and cmd+up/down jump between
+# commands.
+shell-integration = zsh
+
+# Send Option as Alt so the emacs-style word motions in zsh work
+# (option+b / option+f / option+d). Costs the ability to type composed
+# characters with Option, which the Japanese IME does not need.
+macos-option-as-alt = true
+
+# Drop a terminal down over whatever app is in front. This is the fastest path
+# to `claude`, `codex` or `cursor-agent` from anywhere.
+keybind = global:cmd+backquote=toggle_quick_terminal
