@@ -91,7 +91,14 @@ syntax on
 set title
 "" Colors come from the terminal, not from here.
 "" The palette lives in config/ghostty/config -- no colorscheme, no t_Co.
-set background=dark
+"" 'background' is left unset on purpose as well: vim asks the terminal for its
+"" background color (t_RB, OSC 11) and sets dark or light from the answer -- but
+"" only as long as the option has not been assigned here. Assigning it, even to
+"" the right value, is what switches the detection off. Leaving it out is what
+"" lets one vim follow both halves of the light/dark theme pair.
+""
+"" A terminal that never answers leaves vim at its own default, which is light.
+"" Ghostty answers, so this is only a concern somewhere else.
 highlight ColorColumn ctermbg=7
 "" Display number of lines
 set number

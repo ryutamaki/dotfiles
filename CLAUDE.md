@@ -22,6 +22,21 @@ through `syntax-theme = none`, and fzf and tig by setting no color options.
 Restyle the whole environment by editing the `theme` line. When something new
 needs colors, point it at the terminal palette the same way.
 
+That line names two themes — `light:TokyoNight Day,dark:TokyoNight` — and
+Ghostty picks between them from the macOS appearance, live. A tool that only
+ever writes ANSI color numbers needs no light/dark notion at all, which is most
+of the list above. The two that do have one ask the terminal for its background
+rather than being told: vim queries with `t_RB` and sets `background` from the
+answer, git-delta queries with OSC 10/11 and picks its diff colors. Both stop
+asking the moment the answer is hardcoded — `set background=dark` in the vimrc
+or `light`/`dark` in `[delta]` — so leave those unset.
+
+Claude Code is the exception, and it is not fixable here. `"theme": "auto"` is
+accepted but in a terminal it resolves through `$COLORFGBG`, which Ghostty does
+not set, so it lands on plain `dark` and loses the ANSI-only palette. There is
+no `auto-ansi`. `dark-ansi` stays pinned; in light mode its text still comes
+from the terminal, and `/config` flips it by hand.
+
 **PATH lives only in `.zsh/path.zsh`.** It is sourced twice on purpose:
 `.zshenv` covers scripts and AI agents, and `.zprofile` sources it again
 because macOS `/etc/zprofile` runs `path_helper` and pushes the system

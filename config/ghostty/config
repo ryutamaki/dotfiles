@@ -7,14 +7,23 @@
 #   - Claude Code   "theme": "dark-ansi"   in ~/.claude/settings.json
 #   - status line   ANSI codes only        (see bin/statusline.py)
 #   - codex         status_line_use_colors = false in ~/.codex/config.toml
-#   - vim           no colorscheme, no t_Co (see .vim/vimrc)
+#   - vim           no colorscheme, no t_Co, no background (see .vim/vimrc)
 #   - git-delta     syntax-theme disabled  (see .gitconfig)
 #   - fzf / tig     no color options set
 #
 # To change the look of every one of them, change the one line below.
 # `ghostty +list-themes` shows what is available.
+#
+# Two themes, one per macOS appearance. Ghostty watches the system setting and
+# swaps the palette live -- no reload, no restart. `window-theme` is left at its
+# default `auto`, so the titlebar follows the background it is handed.
+#
+# Anything drawing in the 16 ANSI slots follows for free, and the two tools that
+# keep a light/dark notion of their own ask the terminal which one it is: vim
+# through t_RB, git-delta through OSC 10/11. Claude Code is the one that cannot
+# ask, so its theme is pinned; see CLAUDE.md.
 
-theme = Iceberg Dark
+theme = light:TokyoNight Day,dark:TokyoNight
 
 # Font is deliberately left unset: Ghostty's built-in default is fine and one
 # less thing to install on a new machine.
