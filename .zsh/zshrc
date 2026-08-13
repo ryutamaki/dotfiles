@@ -13,16 +13,25 @@ alias g='git'
 alias grep='grep --color'
 alias sudo='sudo -E'
 
-alias t='tmux a || tmux'
-
-alias -g ..='..'
+## Walk up N directories: N dots go up N-1 levels, so `...` is the parent's
+## parent.
+##
+## These stay global (`alias -g`) on purpose. A global alias expands in every
+## word of the line rather than only in command position, which is what makes
+## `cd ...` and `ls ....` work -- and `cd ...` is the way these actually get
+## typed here. The trade-off is taken knowingly: a bare `...` meant as literal
+## dots also becomes a path, so quote it ('...') where that matters. Words with
+## anything attached, like `git diff main...HEAD`, are untouched -- alias
+## expansion only ever matches a whole word.
+##
+## One `..` per dot beyond the first. Miscounting is silent: the previous list
+## defined `......` twice and the wrong one won.
 alias -g ...='../..'
 alias -g ....='../../..'
 alias -g .....='../../../..'
 alias -g ......='../../../../..'
-alias -g ......='../../../../../..'
-alias -g .......='../../../../../../..'
-alias -g ........='../../../../../../../..'
+alias -g .......='../../../../../..'
+alias -g ........='../../../../../../..'
 
 
 ##-----------------------------------------------
