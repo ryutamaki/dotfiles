@@ -25,8 +25,18 @@
 
 theme = light:TokyoNight Day,dark:TokyoNight
 
-# Font is deliberately left unset: Ghostty's built-in default is fine and one
-# less thing to install on a new machine.
+# The font *family* is deliberately left unset: Ghostty's built-in default is
+# fine and one less thing to install on a new machine. Only the size moves,
+# one step down from the default 13.
+font-size = 12
+
+# Ghostty's default padding is 2px, which leaves the text touching the window
+# edge. These give it room to breathe; `balance` splits the leftover pixels --
+# the window is rarely an exact multiple of the cell size -- evenly across both
+# sides instead of dumping all of it on the right and bottom.
+window-padding-x = 12
+window-padding-y = 8
+window-padding-balance = true
 
 # Let Ghostty know where the prompt starts and ends. This is what makes new
 # tabs and splits inherit the current directory, and cmd+up/down jump between
