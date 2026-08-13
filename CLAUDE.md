@@ -69,6 +69,17 @@ symlinked. Each tool rewrites its own file, and each holds credentials or
 per-directory trust levels that do not belong in a public repo. `setup.sh`
 leaves them alone; wiring them up is a manual step in README.md.
 
+## LANG is set, LC_ALL is not
+
+`.zshenv` exports `LANG` and stops there. `LC_ALL` outranks every other locale
+variable, including a one-off `LANG=... command` prefix, so exporting it turns
+those prefixes into no-ops. That is not hypothetical: the
+`LANG=en_US.UTF-8 vcs_info` in `.zsh/zshrc` sat there doing nothing for as long
+as `LC_ALL` was set beside `LANG`.
+
+Adding `export LC_ALL=$LANG` back looks harmless and silently breaks it again.
+When one command needs a different locale, prefix that command.
+
 ## Absent on purpose
 
 Adding any of these undoes a decision rather than filling a gap:

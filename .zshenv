@@ -25,10 +25,14 @@ fi
 
 ##-----------------------------------------------
 #  Language settings
+#
+#  LANG only. LC_ALL is deliberately not exported: it outranks every other
+#  locale variable, including a `LANG=... command` prefix, so setting it here
+#  silently disabled the `LANG=en_US.UTF-8 vcs_info` in .zsh/zshrc. Leaving it
+#  unset is what lets a single command ask for a different locale.
 ##-----------------------------------------------
 
 export LANG=ja_JP.UTF-8
-export LC_ALL=$LANG
 
 
 ##------------------------------------------------

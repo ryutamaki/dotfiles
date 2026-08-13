@@ -101,6 +101,9 @@ zstyle ':vcs_info:*' formats '[%{%F{white}%F{green}%}%s%{%f%k%} %{%F{white}%F{bl
 zstyle ':vcs_info:*' actionformats '(%{%F{white}%K{green}%}%s%{%f%k%})-[%{%F{white}%K{blue}%}%b%{%f%k%}|%{%F{white}%K{red}%}%a%{%f%k%}]'
 precmd() {
     psvar=()
+    ## The LANG prefix keeps vcs_info reading git's English output. It works
+    ## only because .zshenv leaves LC_ALL unset -- LC_ALL outranks LANG and
+    ## would make this prefix a no-op again.
     LANG=en_US.UTF-8 vcs_info
     RPROMPT="${vcs_info_msg_0_}"
 }
