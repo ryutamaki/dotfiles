@@ -1,0 +1,8 @@
+# Global gitignore -- symlinked to ~/.config/git/ignore by bin/setup.sh.
+#
+# git reads this path by default (XDG), so no core.excludesfile is needed.
+# The old .gitignore.global in this repo was never wired up and therefore
+# never did anything.
+
+.DS_Store
+**/.claude/settings.local.json

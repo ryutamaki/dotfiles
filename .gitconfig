@@ -2,9 +2,15 @@
     ui = auto
 [core]
     editor = vim
-    pager = lv -c
-[include]
-    path = ~/.gitconfig.local
+    pager = delta
+[interactive]
+    # Makes the ap / cop / rp aliases below show delta's diff too
+    diffFilter = delta --color-only
+[delta]
+    # No syntax theme on purpose. Colors come from the terminal palette, which
+    # is defined once in config/ghostty/config.
+    syntax-theme = none
+    line-numbers = true
 [push]
     default = simple
 [alias]
@@ -20,6 +26,16 @@
     cop = checkout -p
     rp = reset -p
     br = branch
-    df = diff --color-words
-    dfs = diff --staged --color-words
+    df = diff
+    dfs = diff --staged
     lg = log --graph --all --format="%C(cyan)%an%Creset%x09%C(yellow)%h%Creset%x09%s"
+
+# Identity is never committed. The default is personal; the work address is
+# switched in per directory below. Defaulting to personal means a forgotten
+# directory leaks nothing about work into a public repo.
+[include]
+    path = ~/.gitconfig.local
+[includeIf "gitdir:~/Development/vacan_technologies/"]
+    path = ~/.gitconfig.work
+[includeIf "gitdir:~/Development/vacancorp/"]
+    path = ~/.gitconfig.work
