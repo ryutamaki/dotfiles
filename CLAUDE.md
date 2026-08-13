@@ -60,12 +60,16 @@ new steps to that standard.
 
 ## Identity
 
-`.gitconfig` carries no `[user]`. Personal identity is the default in
-`~/.gitconfig.local`, and work identity comes from `~/.gitconfig.work` through
-`includeIf` on `~/Development/vacan_technologies/` and
-`~/Development/vacancorp/`. Personal-as-default is the safe direction: a
-missed work directory means a personal address on a work repo rather than a
-work address in a public one.
+This repository is public, so it carries neither an address nor the name of
+any directory an address applies to. `.gitconfig` includes
+`~/.gitconfig.local` and stops there. That untracked file holds the personal
+identity as the default and its own `includeIf` lines pointing work
+directories at `~/.gitconfig.work`.
+
+Personal-as-default is the safe direction: a missed work directory means a
+personal address on a work repo rather than a work address in a public one.
+Keep new identity rules in `~/.gitconfig.local` — adding an `includeIf` here
+would publish the directory name.
 
 `~/.zshenv.local`, `~/.vimrc.local`, `~/.gitconfig.local` and
 `~/.gitconfig.work` are machine-local and stay untracked.

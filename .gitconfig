@@ -30,12 +30,9 @@
     dfs = diff --staged
     lg = log --graph --all --format="%C(cyan)%an%Creset%x09%C(yellow)%h%Creset%x09%s"
 
-# Identity is never committed. The default is personal; the work address is
-# switched in per directory below. Defaulting to personal means a forgotten
-# directory leaks nothing about work into a public repo.
+# Identity, and the rules for which identity applies where, both live outside
+# this repository. ~/.gitconfig.local holds the personal default and carries
+# its own includeIf lines for the work directories, so this public repo never
+# names them.
 [include]
     path = ~/.gitconfig.local
-[includeIf "gitdir:~/Development/vacan_technologies/"]
-    path = ~/.gitconfig.work
-[includeIf "gitdir:~/Development/vacancorp/"]
-    path = ~/.gitconfig.work
