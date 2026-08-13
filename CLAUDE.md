@@ -30,6 +30,30 @@ directories back to the front. When an installer appends `export PATH=...` to
 path PATH` needs both names — with `path` alone the deduplication does not
 survive string assignment.
 
+## One status line, three CLIs
+
+`bin/statusline.py` prints the same three lines -- usage, terminal, git -- for
+both `claude` and `cursor-agent`. Both spawn a `statusLine` command and hand it
+a JSON snapshot on stdin, and the two payloads differ only in what they carry:
+`rate_limits` is Claude Code's, `model.param_summary` is cursor-agent's. Each
+segment is skipped when its key is missing, which is why one file serves both.
+Do not fork it per tool.
+
+`codex` has no command hook. Its status line is a fixed set of built-in items
+picked in `[tui] status_line` of `~/.codex/config.toml` (`/statusline` edits
+the same list). Keep that list pointing at the facts the script prints; an item
+codex does not recognise is dropped with a notice rather than failing.
+
+The script writes only the 16 ANSI colors, and codex runs with
+`status_line_use_colors = false` so its line stays the terminal foreground.
+Both are the colour invariant above, not a style choice.
+
+The three config files it is wired into -- `~/.claude/settings.json`,
+`~/.cursor/cli-config.json`, `~/.codex/config.toml` -- are neither tracked nor
+symlinked. Each tool rewrites its own file, and each holds credentials or
+per-directory trust levels that do not belong in a public repo. `setup.sh`
+leaves them alone; wiring them up is a manual step in README.md.
+
 ## Absent on purpose
 
 Adding any of these undoes a decision rather than filling a gap:

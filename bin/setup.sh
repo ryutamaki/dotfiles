@@ -6,8 +6,9 @@
 #
 # Safe to re-run: existing correct symlinks are left alone, and anything real
 # that is in the way is moved aside with a timestamp rather than deleted.
-# What it cannot do -- logging into gh, claude and codex, SSH keys, granting
-# Ghostty its global hotkey -- is listed at the end and in README.md.
+# What it cannot do -- logging into gh, claude and codex, wiring the status
+# line into their config files, SSH keys, granting Ghostty its global hotkey
+# -- is listed at the end and in README.md.
 
 set -euo pipefail
 
@@ -153,11 +154,14 @@ cat <<'MANUAL'
     2. claude          -- and sign in
     3. codex           -- and sign in
     4. cursor-agent login
-    5. Put your SSH keys in ~/.ssh and add the public key to GitHub
-    6. Fill in ~/.gitconfig.local and ~/.gitconfig.work if setup created them
-    7. Open Ghostty once, then allow it under
+    5. Point claude, cursor-agent and codex at bin/statusline.py -- their
+       config files are rewritten by the tools themselves, so this script
+       does not edit them. README.md has the three snippets.
+    6. Put your SSH keys in ~/.ssh and add the public key to GitHub
+    7. Fill in ~/.gitconfig.local and ~/.gitconfig.work if setup created them
+    8. Open Ghostty once, then allow it under
        System Settings > Privacy & Security > Accessibility
        so that cmd+` can summon the quick terminal from any app
-    8. Restart your shell (or open a new Ghostty window)
+    9. Restart your shell (or open a new Ghostty window)
 
 MANUAL

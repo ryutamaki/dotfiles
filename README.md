@@ -39,6 +39,30 @@ These cannot be automated:
 - [ ] Open Ghostty once, then allow it under **System Settings › Privacy &
       Security › Accessibility** so <kbd>cmd</kbd>+<kbd>`</kbd> can summon the
       quick terminal from any app
+- [ ] Point the AI CLIs at `bin/statusline.py`. Their config files are not
+      tracked (see below), so this is per machine:
+
+      ```jsonc
+      // ~/.claude/settings.json and ~/.cursor/cli-config.json.
+      // Spell the path out: neither tool expands ~ in an argument.
+      "statusLine": {
+        "type": "command",
+        "command": "/usr/bin/python3 /Users/YOU/dotfiles/bin/statusline.py",
+        "padding": 1
+      }
+      ```
+
+      ```toml
+      # ~/.codex/config.toml -- codex has no command hook, so it gets the
+      # nearest built-in items instead. `/statusline` edits the same list.
+      [tui]
+      status_line = [
+          "model-with-reasoning", "context-used", "five-hour-limit",
+          "weekly-limit", "current-dir", "git-branch", "pull-request-number",
+      ]
+      status_line_use_colors = false
+      ```
+
 - [ ] Restart the shell
 
 ## What lives where
@@ -50,6 +74,7 @@ These cannot be automated:
 | `config/git/ignore` | Global gitignore. Symlinked to `~/.config/git/ignore`, which git reads by default |
 | `.zsh/path.zsh` | **The only place PATH is defined.** Sourced from both `.zshenv` and `.zprofile` |
 | `.zsh/plugins.zsh` | zsh plugins, all installed by `brew bundle` |
+| `bin/statusline.py` | The status line `claude` and `cursor-agent` both draw. `codex` gets the nearest built-in items |
 | `Brewfile` | Everything installed on a fresh machine |
 | `CLAUDE.md` | The rules an AI should not break when editing this repo |
 
@@ -63,4 +88,7 @@ Machine-local files are never committed: `~/.zshenv.local`,
 - **A zsh plugin manager** — `brew bundle` already is one
 - **Flutter** — its SDK is a git clone at `~/Development/flutter`, which is how
   Flutter expects to be managed
-- **`~/.claude`** — not tracked yet
+- **The AI CLIs' config files** — `~/.claude/settings.json`,
+  `~/.cursor/cli-config.json` and `~/.codex/config.toml` each get rewritten by
+  their own tool and each holds credentials or per-directory trust levels.
+  Only `bin/statusline.py` is tracked; wiring it in is a manual step above
