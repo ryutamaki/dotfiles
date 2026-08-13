@@ -31,6 +31,12 @@ set incsearch
 set ttyfast
 set lazyredraw
 
+"" 2 space indent for these filetypes
+augroup indent_two_spaces
+    autocmd!
+    autocmd FileType javascript,json,ruby,yaml setlocal tabstop=2 shiftwidth=2 softtabstop=2
+augroup END
+
 
 ""-----------------------------------------------
 "  Key remappings
