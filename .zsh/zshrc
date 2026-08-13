@@ -4,6 +4,10 @@ bindkey -e
 ## silence
 setopt nobeep
 
+## Allow a trailing `# comment` on the command line. zsh leaves this off by
+## default, which turns pasting any commented command into a syntax error.
+setopt interactive_comments
+
 
 ##-----------------------------------------------
 #  aliases
@@ -57,6 +61,9 @@ setopt inc_append_history
 setopt hist_ignore_dups
 setopt hist_save_no_dups
 setopt hist_ignore_all_dups
+## A command typed with a leading space is not recorded. The escape hatch for
+## the one-off that carries a token on its command line.
+setopt hist_ignore_space
 
 
 ##-----------------------------------------------

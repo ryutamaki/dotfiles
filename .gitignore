@@ -1,3 +1,4 @@
 .zshenv.local
+.vimrc.local
 .gitconfig.local
 .gitconfig.work

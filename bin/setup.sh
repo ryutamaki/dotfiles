@@ -120,8 +120,15 @@ fi
 info "installing Node, Ruby and Terraform via mise"
 mise install
 
-info "installing CocoaPods (needed for iOS and Flutter builds)"
-mise exec ruby -- gem install cocoapods
+# `gem install` always fetches the current release, so calling it unguarded
+# would upgrade CocoaPods on every re-run -- the opposite of the --no-upgrade
+# rule the Brewfile step follows. Install it when missing, leave it otherwise.
+if mise exec ruby -- gem list -i cocoapods > /dev/null 2>&1; then
+    info "CocoaPods already installed"
+else
+    info "installing CocoaPods (needed for iOS and Flutter builds)"
+    mise exec ruby -- gem install cocoapods
+fi
 
 
 ##-----------------------------------------------
@@ -146,7 +153,11 @@ fi
 #  What is left for a human
 ##-----------------------------------------------
 
-cat <<'MANUAL'
+# Unquoted heredoc: $DOTFILES is filled in below so the status line command can
+# be pasted as printed. Neither claude nor cursor-agent expands ~ in an
+# argument, which is why the path has to be spelled out. The backtick in the
+# Ghostty step is escaped for the same reason the quotes came off.
+cat <<MANUAL
 
 ==> Done. These cannot be automated:
 
@@ -154,14 +165,18 @@ cat <<'MANUAL'
     2. claude          -- and sign in
     3. codex           -- and sign in
     4. cursor-agent login
-    5. Point claude, cursor-agent and codex at bin/statusline.py -- their
-       config files are rewritten by the tools themselves, so this script
-       does not edit them. README.md has the three snippets.
+    5. Point claude, cursor-agent and codex at the status line. Their config
+       files are rewritten by the tools themselves, so this script does not
+       edit them; README.md has the three snippets. The command to paste,
+       with this machine's path already filled in:
+
+           /usr/bin/python3 $DOTFILES/bin/statusline.py
+
     6. Put your SSH keys in ~/.ssh and add the public key to GitHub
     7. Fill in ~/.gitconfig.local and ~/.gitconfig.work if setup created them
     8. Open Ghostty once, then allow it under
        System Settings > Privacy & Security > Accessibility
-       so that cmd+` can summon the quick terminal from any app
+       so that cmd+\` can summon the quick terminal from any app
     9. Restart your shell (or open a new Ghostty window)
 
 MANUAL

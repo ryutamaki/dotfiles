@@ -40,7 +40,8 @@ These cannot be automated:
       Security › Accessibility** so <kbd>cmd</kbd>+<kbd>`</kbd> can summon the
       quick terminal from any app
 - [ ] Point the AI CLIs at `bin/statusline.py`. Their config files are not
-      tracked (see below), so this is per machine:
+      tracked (see below), so this is per machine. `setup.sh` prints the
+      command with this machine's path already filled in:
 
       ```jsonc
       // ~/.claude/settings.json and ~/.cursor/cli-config.json.
