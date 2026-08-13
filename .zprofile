@@ -15,8 +15,3 @@
 if [ -e ~/.zsh/path.zsh ]; then
     source ~/.zsh/path.zsh
 fi
-
-# Ruby version manager. Replaced by mise in a later commit.
-if command -v rbenv > /dev/null; then
-    eval "$(rbenv init - --no-rehash zsh)"
-fi

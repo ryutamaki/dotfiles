@@ -28,9 +28,10 @@ fi
 
 
 ##------------------------------------------------
-#  Node version manager. Replaced by mise in a later commit.
-#  Reads .nvmrc / .node-version and switches on cd.
+#  mise -- Node, Ruby and Terraform versions
+#  Versions are pinned in config/mise/config.toml. Repositories with their own
+#  .node-version, .nvmrc, .ruby-version or mise.toml override them on cd.
 ##------------------------------------------------
-if command -v fnm > /dev/null; then
-    eval "$(fnm env --use-on-cd)"
+if command -v mise > /dev/null; then
+    eval "$(mise activate zsh)"
 fi

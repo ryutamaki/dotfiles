@@ -1,0 +1,21 @@
+# mise -- symlinked to ~/.config/mise/config.toml by bin/setup.sh
+#
+# One tool replaces rbenv (Ruby), fnm (Node) and Homebrew's terraform. These
+# are the global defaults; a repo with its own .node-version, .nvmrc,
+# .ruby-version or mise.toml overrides them on cd.
+#
+# Flutter is deliberately not here. Its SDK is a git clone at
+# ~/Development/flutter and channel switching is how Flutter expects to be
+# managed.
+
+[tools]
+node = "24.18.0"
+ruby = "3.2.2"
+# Pinned. Raising this rewrites terraform state in a way that cannot be
+# undone, so treat a version bump as its own piece of work.
+terraform = "1.5.7"
+
+[settings]
+# Several repos here carry .node-version or .nvmrc. mise ignores those by
+# default, so switch them back on for node.
+idiomatic_version_file_enable_tools = ["node"]
