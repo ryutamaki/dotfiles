@@ -11,8 +11,46 @@
     # is defined once in config/ghostty/config.
     syntax-theme = none
     line-numbers = true
+    # n / N jump between hunks inside the pager instead of scrolling to find
+    # them. Pairs with merge.conflictStyle below, which delta renders too.
+    navigate = true
+[diff]
+    # histogram reads better than the default myers on the reorderings and
+    # block moves that show up in config files.
+    algorithm = histogram
+    # Mark lines that only moved, so they stop reading as a delete plus an
+    # unrelated add. The default palette here is bold magenta / bold cyan --
+    # ANSI slots, so the terminal still owns the actual colors.
+    colorMoved = default
+[merge]
+    # zdiff3 keeps the common ancestor in a conflict block, which is what makes
+    # it possible to see which side changed what. The plain default hides it.
+    conflictStyle = zdiff3
+[fetch]
+    # Drop remote-tracking branches whose upstream is gone. Without this the
+    # branch list keeps every merged PR branch forever.
+    prune = true
+[rebase]
+    # `commit --fixup` markers get applied without asking during a rebase.
+    autosquash = true
+    # Stash and restore around a rebase instead of refusing to start.
+    autostash = true
+[rerere]
+    # Remember how a conflict was resolved and replay it the next time the same
+    # one appears -- the payoff is in repeated rebases of a long branch.
+    enabled = true
 [push]
     default = simple
+    # First push of a new branch sets its upstream instead of erroring out with
+    # the --set-upstream hint.
+    autoSetupRemote = true
+[branch]
+    # `git branch` most-recent first. Alphabetical is never the order you want.
+    sort = -committerdate
+[column]
+    # Multi-column listings when the terminal is wide enough, one per line when
+    # it is not.
+    ui = auto
 [alias]
     a  = add
     aa = add -A
