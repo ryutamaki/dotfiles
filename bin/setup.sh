@@ -109,17 +109,22 @@ touch "$HOME/.zshenv.local" "$HOME/.vimrc.local"
 
 if [ ! -e "$HOME/.gitconfig.local" ]; then
     cat > "$HOME/.gitconfig.local" <<'TEMPLATE'
-# Personal identity -- the default for every repository.
+# Personal identity -- the default for every repository, and the only place the
+# work directories are named. Uncomment one includeIf per work directory; they
+# live here rather than in the tracked .gitconfig because that repo is public.
 [user]
     name = CHANGE_ME
     email = CHANGE_ME
+
+# [includeIf "gitdir:~/CHANGE_ME/"]
+#     path = ~/.gitconfig.work
 TEMPLATE
-    warn "fill in ~/.gitconfig.local (personal name and email)"
+    warn "fill in ~/.gitconfig.local (personal name and email, and an includeIf per work directory)"
 fi
 
 if [ ! -e "$HOME/.gitconfig.work" ]; then
     cat > "$HOME/.gitconfig.work" <<'TEMPLATE'
-# Work identity -- applied under the includeIf directories in ~/.gitconfig.
+# Work identity -- applied under the includeIf directories in ~/.gitconfig.local.
 [user]
     name = CHANGE_ME
     email = CHANGE_ME
@@ -182,13 +187,18 @@ fi
 #  symlinked into place by the link lines further up instead.
 ##-----------------------------------------------
 
+# Both go through `mise exec node`, like the CocoaPods step above: node comes
+# from mise, and its shims reach PATH through `mise activate` in .zshrc, which
+# this script never runs. A bare npx works on a machine that already has one and
+# aborts the rest of this script on a fresh one.
+#
 # --all is `--skill '*' --agent '*' -y`: every skill in the repository, exposed
 # to every agent on the machine.
 if [ -d "$HOME/.agents/skills/setup-matt-pocock-skills" ]; then
     info "mattpocock skills already installed"
 else
     info "installing agent skills from mattpocock/skills"
-    npx -y skills add mattpocock/skills --global --all
+    mise exec node -- npx -y skills add mattpocock/skills --global --all
 fi
 
 # herdr ships the skill that teaches an agent to drive the multiplexer it is
@@ -199,7 +209,7 @@ if [ -d "$HOME/.agents/skills/herdr" ]; then
     info "herdr skill already installed"
 else
     info "installing the herdr skill from herdrdev/herdr"
-    npx -y skills add herdrdev/herdr --skill herdr --agent '*' --global -y
+    mise exec node -- npx -y skills add herdrdev/herdr --skill herdr --agent '*' --global -y
 fi
 
 
@@ -223,8 +233,13 @@ fi
 ##-----------------------------------------------
 
 if command -v herdr > /dev/null; then
+    # Read once rather than per target. Piping into `grep -q` closes the pipe at
+    # the matching line, herdr dies writing the rest, and pipefail turns that
+    # into a miss -- so a current integration reinstalls itself, which is the one
+    # thing this guard exists to prevent.
+    herdr_integrations=$(herdr integration status)
     for target in claude codex cursor; do
-        if herdr integration status | grep -q "^$target: current"; then
+        if grep -q "^$target: current" <<< "$herdr_integrations"; then
             info "herdr integration already current: $target"
         else
             info "installing herdr integration: $target"

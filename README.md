@@ -51,7 +51,9 @@ These cannot be automated:
 - [ ] `cursor-agent login`
 - [ ] SSH keys into `~/.ssh`, public key added to GitHub
 - [ ] Fill in `~/.gitconfig.local` (personal) and `~/.gitconfig.work` (work) if
-      `setup.sh` created them from the template
+      `setup.sh` created them from the template, and uncomment one `includeIf`
+      in `~/.gitconfig.local` per work directory — nothing else points at
+      `~/.gitconfig.work`
 - [ ] Open Ghostty once, then allow it under **System Settings › Privacy &
       Security › Accessibility** so <kbd>cmd</kbd>+<kbd>`</kbd> can summon the
       quick terminal from any app
