@@ -7,9 +7,11 @@
 #
 # `herdr --default-config` prints every key with its default. Apply an edit to
 # the running server with `herdr server reload-config` -- no restart, no lost
-# panes. `herdr config check` validates the TOML and not the values: it says `ok`
-# for a color that is not a color, and falls back silently on a theme name it does
-# not know. Confirm a theme edit by looking at the sidebar.
+# panes. `herdr config check` validates the TOML, and of the values only the
+# keybindings: it says `ok` for a color that is not a color, and falls back
+# silently on a theme name it does not know, but an unknown key name it names and
+# disables. So a keybinding edit is confirmed by `check`; a theme edit is
+# confirmed by looking at the sidebar.
 
 # Skip the first-run onboarding flow. Everything it would ask is already
 # decided here.
@@ -58,9 +60,37 @@ dark_name = "catppuccin"
 # Forcing "non_login" here would give every new pane a different PATH than
 # every Ghostty tab. See .zsh/path.zsh.
 
-# [keys] is left at its defaults too: the prefix is ctrl+b, and `prefix+?`
-# lists every live binding, which is a better reference than a copy here that
-# can drift.
+[keys]
+# ctrl+b is emacs' backward-char, pressed in every pane here far more often
+# than any multiplexer verb, and herdr's default prefix swallows it. So the
+# prefix moves. ctrl+t is not a new idea: it was the tmux prefix in this repo
+# from 2014 until .tmux.conf was deleted in 3416a9a, and the muscle memory
+# outlived the file.
+#
+# It is not free. `source <(fzf --zsh)` in .zshrc binds ^T to fzf-file-widget,
+# and inside a herdr pane the prefix now wins -- as it does over readline's
+# transpose-chars. That is the trade taken deliberately: ^B costs a keystroke
+# constantly, ^T costs one with a way around it, since ^R still reaches fzf's
+# history and Tab completion covers the file case.
+prefix = "ctrl+t"
+
+# The other half of the same muscle memory. `prefix+v` is herdr's default for
+# a side-by-side split and `|` draws the divider that split makes. The stacked
+# split is already `prefix+minus`, which is what .tmux.conf bound `-` to, so it
+# needs no line here.
+#
+# Keys are the one thing `herdr config check` checks by value: an unknown name
+# reports `invalid keybinding` and disables that binding, rather than falling
+# back silently the way a bad theme name does. Both `pipe` and `bar` are
+# rejected -- the literal character is the accepted spelling.
+split_vertical = "prefix+|"
+
+# Nothing else is repeated here; `prefix+?` lists every live binding, which is
+# a better reference than a copy that can drift. Resize is the one deliberate
+# omission rather than an oversight: .tmux.conf had `bind -r H/J/K/L` to nudge
+# a border without re-pressing the prefix, and herdr has no repeat binding --
+# it has `prefix+r`, a mode. The mode is the replacement; the old binding has
+# nothing to map onto.
 
 # The one thing the theme change did not fix. herdr draws the second row of an
 # agent entry with SGR 2, which halves its distance to whatever is behind it --
@@ -71,3 +101,6 @@ dark_name = "catppuccin"
 # Everything else matches the default `rows` value exactly.
 [ui.sidebar.agents]
 rows = [["state_icon", "workspace", "tab"], [{ token = "agent", dim = false }]]
+
+[ui]
+agent_panel_sort = "spaces"

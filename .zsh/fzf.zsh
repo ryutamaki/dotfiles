@@ -22,6 +22,31 @@ if command -v fd > /dev/null; then
     export FZF_ALT_C_COMMAND='fd --type d --hidden --exclude .git'
 fi
 
+##-----------------------------------------------
+#  Where fzf-file-widget is reachable from
+#
+#  `fzf --zsh` binds it to ^T, and ^T is herdr's prefix -- see
+#  config/herdr/config.toml for why the prefix moved there -- so inside a herdr
+#  pane the widget had no key at all.
+#
+#  ^O is the slot that was free. Its default, accept-line-and-down-history, is
+#  the one control key in the emacs keymap nothing here reaches for, unlike the
+#  ^A/^B/^E/^F/^K/^W/^Y that made ^B unusable as a prefix in the first place.
+#
+#  ^T keeps its binding rather than being unbound. Outside a herdr pane -- a
+#  plain Ghostty tab, or over ssh -- nothing is eating it, and taking it away
+#  would buy nothing.
+#
+#  FZF_CTRL_T_COMMAND above keeps its name whichever key is bound: fzf reads it
+#  by widget, not by binding. The guard is because the widget only exists once
+#  `fzf --zsh` has run in .zshrc; binding a missing widget is a startup error
+#  rather than a quiet no-op.
+##-----------------------------------------------
+
+if zle -l fzf-file-widget; then
+    bindkey '^O' fzf-file-widget
+fi
+
 # z - z with fzf
 unalias z 2> /dev/null
 z() {

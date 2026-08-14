@@ -191,10 +191,22 @@ its second row in a real color and is left alone. With that in place every row a
 dot in the sidebar clears 3:1 in both appearances, the weakest being the agent name
 on a filled entry at 3.11:1.
 
-When editing that file, note that `herdr config check` validates the TOML and not
-the values — it reports `ok` for a color that is not a color, and a bad theme name
-falls back silently — so confirm a theme edit by looking at the sidebar after
-`herdr server reload-config`.
+When editing that file, note that `herdr config check` validates the TOML and, of
+the values, only the keybindings. It reports `ok` for a color that is not a color
+and falls back silently on a theme name it does not know, but it names an unknown
+key and disables that binding. So a keybinding edit is confirmed by `check`, and a
+theme edit only by looking at the sidebar after `herdr server reload-config`.
+
+The prefix is `ctrl+t`, not herdr's `ctrl+b`, and that is the one keybinding
+decision here rather than a preference left at its default. `ctrl+b` is emacs'
+backward-char, which is pressed in every pane far more often than any multiplexer
+verb. `ctrl+t` was this repo's tmux prefix from 2014 until `.tmux.conf` was
+deleted, so it is old muscle memory rather than a new one. It is not free either:
+`.zshrc` runs `source <(fzf --zsh)`, which binds `^T` to `fzf-file-widget`, and
+inside a herdr pane the prefix now wins — so before rebinding anything in
+`.zsh/`, check it against the prefix. `split_vertical` moves to `prefix+|` for the
+same reason; `prefix+minus` already matches what tmux bound `-` to. Resize does
+not port at all, because herdr has `prefix+r`, a mode, and no repeat binding.
 
 One part of the invariant turns out to depend on herdr's version rather than its
 config. 0.8.0 is the release where "pane applications that query OSC 4 palette
@@ -247,8 +259,28 @@ relaunched with its own resume flag — `claude --resume <id>`, `codex resume
 <id>`, `cursor-agent --resume <id>` — so the conversations continue rather than
 restart. That needs integration version 6 / 5 / 1 or newer respectively, which
 is why `setup.sh` keeps them current. Scrollback does not come back:
-`pane_screen_history` is off by default because pane output holds secrets, and
-it should stay off.
+`pane_history` is off by default because pane output holds secrets, and it
+should stay off.
+
+## Reading a pane an agent started
+
+`herdr pane run` plus `herdr pane read` is how an agent puts a long-running
+process — a dev server, a watcher — in a pane the human can see, instead of
+backgrounding it where only the agent can. The trap is in the read source, and
+it fails quietly. `recent` and `recent-unwrapped` read the pane's scrollback,
+so they return an empty string until output has actually scrolled off the
+viewport. A server that has just printed its two startup lines has nothing in
+scrollback, and the skill's own advice to prefer `recent-unwrapped` for logs
+returns nothing at all — which reads as "the server printed nothing" rather
+than "you asked the wrong buffer". Measured here with `python3 -m http.server`
+in an 84-row pane: empty at six lines, correct for both sources after a
+hundred. `visible` reads the rendered viewport and is right from the first
+line, so start there and move to `recent-unwrapped` only once the output is
+long enough to have scrolled.
+
+`herdr pane wait-output --match` is the reliable readiness signal and does not
+share the problem, because it searches the snapshot immediately and matches
+output that already exists.
 
 Do not add a completion-notification hook to match codex's `turn-ended` notify.
 The sidebar already carries that signal for every agent at once, which is
