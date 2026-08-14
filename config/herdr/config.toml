@@ -86,46 +86,19 @@ prefix = "ctrl+t"
 split_vertical = "prefix+|"
 
 # Moving between agents is the one thing the pane keys cannot do, and herdr
-# leaves it unbound. The agents here sit one per workspace while
-# focus_pane_h/j/k/l stops at the edge of a tab, so the only route to the next
-# one was prefix+w, pick a workspace, then a pane key -- three decisions to reach
-# something the sidebar was already showing.
+# leaves it unbound: focus_pane_h/j/k/l stops at the edge of a tab, while the
+# agents sit one per workspace.
 #
-# What they walk is the panel's order, which is agent_panel_sort at the bottom of
-# this file -- "spaces" groups by project, "priority" would put whoever is waiting
-# next. Either way the pair still means next and previous, so the sort stays a
-# free choice rather than a dependency.
+# Direct chords rather than prefixed ones, because herdr has no repeat binding --
+# prefix mode exits after one action, so a prefixed pair walks one entry per
+# press. That costs the prefix's cost pointed the other way: these are captured
+# before any pane app sees them, in every pane, so ctrl+alt+n/p join ctrl+t on
+# the list to check before binding anything in .zsh/.
 #
-# They are direct chords rather than prefixed ones because herdr has no repeat
-# binding. Prefix mode exits after one action, so a prefixed pair walks exactly
-# one entry and has to be re-armed for the next; tmux's `bind -r` has no
-# equivalent here, which is the same gap that leaves resize as a mode. Holding
-# ctrl+alt and tapping is the way around it, and the only one that does not
-# involve a mode. prefix+g is the affordance that costs no chord -- a mode that
-# stays open while bare keys repeat -- but it moves between workspaces and panes,
-# not along the agent panel. Close here, since the agents sit one per workspace,
-# but not the same list.
-#
-# The cost is the prefix's cost pointed the other way: these are captured before
-# any pane app sees them, in every pane, so ctrl+alt+n/p join ctrl+t on the list
-# to check before binding anything in .zsh/. Unmodified ctrl+letter would be the
-# more reliable form and there is none to spare -- ctrl+n/p are zsh's history,
-# ctrl+j is accept-line, ctrl+t is already the prefix.
-#
-# n and p are measured rather than chosen, and the letters are not
-# interchangeable. Read with `cat -v`: ctrl+alt+k and ctrl+alt+u produce no bytes
-# at all, in a plain Ghostty tab as well as in a pane, so the loss is below herdr
-# and it is not a binding that failed to register -- and nothing in Ghostty's
-# keybinds, Karabiner's rules or the system hotkeys claims them. ctrl+alt+o and
-# ctrl+alt+y do arrive and are still unusable, because macOS' line discipline
-# spends those bytes first: ^O is DISCARD and ^Y is DSUSP, which suspends whatever
-# the pane is running. ctrl+alt+n and ctrl+alt+p arrive clean as ^[^N and ^[^P.
-# So test a replacement with cat -v before trusting it; `herdr config check`
-# reports ok for a chord that never arrives, because the key name is valid.
-#
-# herdr also has focus_agent, an indexed jump straight to a row, and it is left
-# unbound for now rather than rejected. Two keys are the smaller change and this
-# is the half that survives whatever the sort turns out to be.
+# n and p are measured rather than chosen -- ctrl+alt+k and u deliver no bytes at
+# all here, o and y are eaten by the tty's DISCARD and DSUSP. Confirm a
+# replacement with `cat -v`, never with `herdr config check`, which reports ok
+# for a chord that never arrives. CLAUDE.md carries the full catalogue.
 next_agent = "ctrl+alt+n"
 previous_agent = "ctrl+alt+p"
 
@@ -136,15 +109,9 @@ previous_agent = "ctrl+alt+p"
 # it has `prefix+r`, a mode. The mode is the replacement; the old binding has
 # nothing to map onto.
 
-# The one thing the theme change did not fix. herdr draws the second row of an
-# agent entry with SGR 2, which halves its distance to whatever is behind it --
-# arithmetic rather than palette, and the named theme is the worse of the two: the
-# agent name measured 1.9:1 under `terminal` and 1.5:1 here, 1.4:1 on a filled
-# entry. Turning the dim off is the whole fix, and this is the only row that needs
-# it; the spaces panel draws its second row in a real color and is left alone.
-# Everything else matches the default `rows` value exactly.
+# The one thing the theme change did not fix. herdr draws an agent entry's second
+# row with SGR 2, which halves its distance to whatever is behind it -- arithmetic
+# rather than palette, and 1.5:1 here. Turning the dim off is the whole fix, and
+# this is the only row that needs it; everything else matches the default `rows`.
 [ui.sidebar.agents]
 rows = [["state_icon", "workspace", "tab"], [{ token = "agent", dim = false }]]
-
-[ui]
-agent_panel_sort = "spaces"

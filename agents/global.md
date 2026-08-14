@@ -1,16 +1,8 @@
 # Global agent instructions
 
-Symlinked by `bin/setup.sh` to `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md`,
-from `agents/global.md` in the dotfiles repo. One file rather than two copies:
-nothing in it is specific to a CLI, only the filename each one looks for is.
-
-This is read at the start of every session in every project, so it stays short
-and holds only what is true everywhere. Anything that is true of one repository
-belongs in that repository's own `CLAUDE.md`.
-
-The filename is deliberately not `AGENTS.md`. That name is a project-level
-instruction file to codex and cursor-agent, and a copy sitting in the dotfiles
-repo would be picked up a second time while working on the dotfiles themselves.
+Edited as `agents/global.md` in the dotfiles repo, whose `CLAUDE.md` argues the
+symlinks and the filename. Read at the start of every session in every project,
+so it holds only what is true everywhere.
 
 ## Long-running processes go in a herdr pane
 

@@ -62,42 +62,22 @@ those clamp toward black or white and take the green out of a diff.
 There is one contrast problem a better theme cannot fix, and it is worth knowing
 before reaching for the theme line. Every floor recorded in that file measures a
 slot **against the background**, because until herdr nothing here painted a slot
-**as** a background. A tool that fills a panel with ANSI 8 and then draws text on
-it depends on a relationship the 16 slots do not fix, and this pair puts it at
-2.43:1 on the light half and 2.18:1 on the dark one — both halves fail, so
-pinning an appearance does not help either. Slot 8 has to sit far from the
-background so faint text reads against it, and far from the foreground so a fill
-reads under it, which leaves it mid-range with roughly 3:1 to spend in each
-direction; SGR 2 then halves whichever one carries dim text. Across all 463
-themes Ghostty ships, no light theme clears the existing floors and text-on-slot-8
-together, and none of the 463 keeps faint text legible on such a fill. So the fix
-never lives in the theme line. herdr's was to stop drawing from this palette at
-all, which is the exception above; Claude Code's is the flip below, and it only
-half works.
+**as** a background. A tool that fills a panel with ANSI 8 and draws text on it
+needs slot 8 to work as a background too, and no theme Ghostty ships clears both
+at once. So the fix never lives in the theme line. herdr's was to stop drawing
+from this palette at all, which is the exception above.
 
-Claude Code is the exception, and it is not fixable here. `"theme": "auto"` is
-accepted but in a terminal it resolves through `$COLORFGBG`, which Ghostty does
-not set, so it lands on plain `dark` and loses the ANSI-only palette. There is
-no `auto-ansi`, so the theme is whichever half was set last and `/config` flips
-it by hand. That flip is not cosmetic. Claude Code draws the user's own message
-as a filled block, and `dark-ansi` fills it with ANSI 8 and writes ANSI 15 on
-top — 2.47:1 on the light half, because both slots were chosen to read against
-the opposite background. `light-ansi` fills with ANSI 7 and writes ANSI 0
-instead, which measures 3.75:1 on that half. Text outside the block comes from the
-terminal either way, which is what makes the wrong half look survivable until a
-filled block appears.
-
-The dark half has no winning move, and knowing that saves flipping back and forth
-looking for one. There `dark-ansi` measures 2.43:1 and `light-ansi` 2.87:1 — the
-wrong-looking half is the better number, by too little to justify a bright block
-on a dark page. Both fail because slot 8 and slot 7 of `GitHub Dark High Contrast`
-sit too close to slot 15 and slot 0. This is the only sub-3:1 measurement left in
-the setup, and the only thing that closes it is replacing the dark half of the
-theme pair: 15 of the 386 dark themes Ghostty ships clear the existing floors and
-text-on-slot-8 together — `Monokai Remastered` reaches 6.00, `Cobalt Next Dark`
-4.86, `Dracula` 4.71, `Xcode Dark hc` 3.53. Treat that as its own piece of work
-with its own verification, `split-divider-color` included, never as a side effect
-of something else.
+Claude Code is where it stays unfixed, and it is not fixable here. There is no
+`auto-ansi` — `"theme": "auto"` resolves through `$COLORFGBG`, which Ghostty does
+not set — so the theme is whichever half was set last and `/config` flips it by
+hand. That flip is not cosmetic: Claude Code draws the user's own message as a
+filled block, so the wrong half puts sub-3:1 text inside it while everything
+outside the block still reads fine, which is what makes it look survivable. The
+light half has a right answer and the dark half has none. Both sets of numbers,
+and the dark themes that would close the gap, are recorded in
+`config/ghostty/config`. Replacing the dark half is its own piece of work with
+its own verification, `split-divider-color` included, never a side effect of
+something else.
 
 **PATH lives only in `.zsh/path.zsh`.** It is sourced twice on purpose:
 `.zshenv` covers scripts and AI agents, and `.zprofile` sources it again
@@ -309,19 +289,12 @@ should stay off.
 
 ## Reading a pane an agent started
 
-`herdr pane run` plus `herdr pane read` is how an agent puts a long-running
-process — a dev server, a watcher — in a pane the human can see, instead of
-backgrounding it where only the agent can. The trap is in the read source, and
-it fails quietly. `recent` and `recent-unwrapped` read the pane's scrollback,
-so they return an empty string until output has actually scrolled off the
-viewport. A server that has just printed its two startup lines has nothing in
-scrollback, and the skill's own advice to prefer `recent-unwrapped` for logs
-returns nothing at all — which reads as "the server printed nothing" rather
-than "you asked the wrong buffer". Measured here with `python3 -m http.server`
-in an 84-row pane: empty at six lines, correct for both sources after a
-hundred. `visible` reads the rendered viewport and is right from the first
-line, so start there and move to `recent-unwrapped` only once the output is
-long enough to have scrolled.
+The read-source trap itself is in `agents/global.md`, where the prescription
+belongs — it is true in every repo, not just this one. What lives here is the
+measurement behind it: `python3 -m http.server` in an 84-row pane read empty at
+six lines of output and correct for both scrollback sources after a hundred.
+That is why `visible` is the starting point and `recent-unwrapped` is worth
+reaching for only once the output has actually scrolled.
 
 `herdr pane wait-output --match` is the reliable readiness signal and does not
 share the problem, because it searches the snapshot immediately and matches
