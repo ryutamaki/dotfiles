@@ -15,13 +15,20 @@ script -q /dev/null zsh -l -i -c 'exit'
 
 These two invariants are the point of the current layout. Keep each one true.
 
-**Colors live only in `config/ghostty/config`.** Everything that draws in the
-terminal reads the theme's 16 ANSI colors from there: Claude Code through
-`"theme": "dark-ansi"`, vim by having no colorscheme and no `t_Co`, git-delta
-through `syntax-theme = none`, herdr through `[theme] name = "terminal"`, and
-fzf and tig by setting no color options. Restyle the whole environment by
-editing the `theme` line. When something new needs colors, point it at the
-terminal palette the same way.
+**Colors live only in `config/ghostty/config`, for everything that draws inside
+a pane.** Those all read the theme's 16 ANSI colors from there: Claude Code
+through `"theme": "dark-ansi"` or `"light-ansi"`, vim by having no colorscheme and
+no `t_Co`, git-delta through `syntax-theme = none`, and fzf and tig by setting no
+color options. Restyle all of them by editing the `theme` line. When something new
+needs colors, point it at the terminal palette the same way.
+
+herdr's own chrome — sidebar, tab bar, borders, overlays — is the one exception,
+and it is a decision rather than an oversight. It carries Catppuccin;
+`config/herdr/config.toml` argues it in full, and the short version is that
+sixteen ANSI slots offer no color meant to be a background and no yellow that is
+both readable on white and recognisable as yellow, and herdr's sidebar needs
+both. Pane *contents* still come from Ghostty, so nothing in the list above
+changes.
 
 That line names two themes — `light:GitHub Light High Contrast,dark:GitHub
 Dark High Contrast` — and Ghostty picks between them from the macOS
@@ -33,12 +40,17 @@ with OSC 10/11 and picks its diff colors. Both stop asking the moment the
 answer is hardcoded — `set background=dark` in the vimrc or `light`/`dark` in
 `[delta]` — so leave those unset.
 
-herdr has a third shape of the same trap. It offers `[theme] auto_switch`,
-which sounds like following the terminal and is not: it makes herdr swap
-between two of its *own* themes on an appearance change. With `name =
-"terminal"` there is nothing to swap — Ghostty repaints the palette and herdr's
-UI follows because it only ever wrote color numbers. Leave `auto_switch`,
-`light_name`, `dark_name` and `[theme.custom]` unset.
+herdr is where that switching stops being free, which is the price of the
+exception above. `[theme] auto_switch` sounds like following the terminal and is
+not: it makes herdr swap between two of its *own* themes on an appearance change.
+Under `name = "terminal"` there was nothing to swap and it was left off. Under a
+named theme it is mandatory, because `panel_bg` follows the terminal background
+while `surface0` and `surface1` come from the theme — pin one half and a light
+fill lands on a dark panel, which measured 2.0:1 for the text inside it. So it is
+on, with `light_name = "catppuccin-latte"` and `dark_name = "catppuccin"`, and
+Ghostty does report the appearance for herdr to follow. There is no
+`[theme.custom]` block; overriding a token there would hardcode a color outside
+both sources.
 
 Both halves are picked for legibility, not looks, and a replacement is checked
 the same way — the config file records the measurements and the floor. The
@@ -47,11 +59,45 @@ sibling's bright ANSI row, which is unreadable on a light background. Fix that
 by choosing a better theme, never with `minimum-contrast` or `faint-opacity`:
 those clamp toward black or white and take the green out of a diff.
 
+There is one contrast problem a better theme cannot fix, and it is worth knowing
+before reaching for the theme line. Every floor recorded in that file measures a
+slot **against the background**, because until herdr nothing here painted a slot
+**as** a background. A tool that fills a panel with ANSI 8 and then draws text on
+it depends on a relationship the 16 slots do not fix, and this pair puts it at
+2.43:1 on the light half and 2.18:1 on the dark one — both halves fail, so
+pinning an appearance does not help either. Slot 8 has to sit far from the
+background so faint text reads against it, and far from the foreground so a fill
+reads under it, which leaves it mid-range with roughly 3:1 to spend in each
+direction; SGR 2 then halves whichever one carries dim text. Across all 463
+themes Ghostty ships, no light theme clears the existing floors and text-on-slot-8
+together, and none of the 463 keeps faint text legible on such a fill. So the fix
+never lives in the theme line. herdr's was to stop drawing from this palette at
+all, which is the exception above; Claude Code's is the flip below, and it only
+half works.
+
 Claude Code is the exception, and it is not fixable here. `"theme": "auto"` is
 accepted but in a terminal it resolves through `$COLORFGBG`, which Ghostty does
 not set, so it lands on plain `dark` and loses the ANSI-only palette. There is
-no `auto-ansi`. `dark-ansi` stays pinned; in light mode its text still comes
-from the terminal, and `/config` flips it by hand.
+no `auto-ansi`, so the theme is whichever half was set last and `/config` flips
+it by hand. That flip is not cosmetic. Claude Code draws the user's own message
+as a filled block, and `dark-ansi` fills it with ANSI 8 and writes ANSI 15 on
+top — 2.47:1 on the light half, because both slots were chosen to read against
+the opposite background. `light-ansi` fills with ANSI 7 and writes ANSI 0
+instead, which measures 3.75:1 on that half. Text outside the block comes from the
+terminal either way, which is what makes the wrong half look survivable until a
+filled block appears.
+
+The dark half has no winning move, and knowing that saves flipping back and forth
+looking for one. There `dark-ansi` measures 2.43:1 and `light-ansi` 2.87:1 — the
+wrong-looking half is the better number, by too little to justify a bright block
+on a dark page. Both fail because slot 8 and slot 7 of `GitHub Dark High Contrast`
+sit too close to slot 15 and slot 0. This is the only sub-3:1 measurement left in
+the setup, and the only thing that closes it is replacing the dark half of the
+theme pair: 15 of the 386 dark themes Ghostty ships clear the existing floors and
+text-on-slot-8 together — `Monokai Remastered` reaches 6.00, `Cobalt Next Dark`
+4.86, `Dracula` 4.71, `Xcode Dark hc` 3.53. Treat that as its own piece of work
+with its own verification, `split-divider-color` included, never as a side effect
+of something else.
 
 **PATH lives only in `.zsh/path.zsh`.** It is sourced twice on purpose:
 `.zshenv` covers scripts and AI agents, and `.zprofile` sources it again
@@ -119,10 +165,44 @@ herdr is the one multiplexer this setup keeps — the list below used to exclude
 the whole category, and now excludes only tmux and screen. It earns the slot by
 offering three things Ghostty does not: panes that survive a closed window, one
 sidebar showing the state of every agent across every project, and a socket API
-an agent can drive from inside its own pane. It only earns it because
-`[theme] name = "terminal"` keeps it off the colors invariant; a multiplexer
-sits between the agent and Ghostty, which is exactly where a second palette
-would otherwise appear.
+an agent can drive from inside its own pane. A multiplexer sits between the agent
+and Ghostty, which is exactly where a second palette appears, and this one has
+one — `[theme] name` is Catppuccin, not `terminal`. That is the exception carved
+out at the top of this file, and `config/herdr/config.toml` carries the argument
+for it.
+
+It went the other way first. `terminal` gets herdr the right sixteen colors but
+not the relationships between them, and herdr needs two relationships ANSI does
+not fix. A fill needs a slot to work as a background, and slot 8 cannot: it has to
+read *on* the background, so the selected entry measured 2.43:1 on the light half
+and 2.18:1 on the dark one, with its second row at 1.02:1. And the sidebar's state
+dots are drawn in the color slots, where a high-contrast light theme has to darken
+its yellow to survive white — `GitHub Light High Contrast`'s palette 3 is
+`#3f2200`, perfectly legible at 15:1 and not recognisable as yellow. A dot is a
+glanceable signal, so hue is the requirement there, and no passthrough theme can
+be talked out of the palette it passes through.
+
+Catppuccin fixes both, and one thing survives the switch: herdr draws the second
+row of an agent entry with SGR 2, which halves its distance to whatever is behind
+it. That is arithmetic, not palette — the agent name measured 1.9:1 under
+`terminal` and 1.5:1 under Catppuccin, the named theme being the worse of the two.
+`[ui.sidebar.agents]` turns the `dim` off for that one row; the spaces panel draws
+its second row in a real color and is left alone. With that in place every row and
+dot in the sidebar clears 3:1 in both appearances, the weakest being the agent name
+on a filled entry at 3.11:1.
+
+When editing that file, note that `herdr config check` validates the TOML and not
+the values — it reports `ok` for a color that is not a color, and a bad theme name
+falls back silently — so confirm a theme edit by looking at the sidebar after
+`herdr server reload-config`.
+
+One part of the invariant turns out to depend on herdr's version rather than its
+config. 0.8.0 is the release where "pane applications that query OSC 4 palette
+colors now inherit the host terminal palette" (#1752); before it, a pane app
+asking the terminal what its palette is did not necessarily get Ghostty's answer.
+Everything here that asks rather than hardcodes — vim through `t_RB`, git-delta
+through OSC 10/11 — is downstream of that, which is one more reason the upgrade
+note below is not optional maintenance.
 
 The wiring is two independent halves, and a working install needs both:
 

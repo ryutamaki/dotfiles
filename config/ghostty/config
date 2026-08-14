@@ -4,7 +4,7 @@
 #
 # Everything that draws in the terminal inherits the 16 ANSI colors from the
 # theme below instead of carrying a palette of its own:
-#   - Claude Code   "theme": "dark-ansi"   in ~/.claude/settings.json
+#   - Claude Code   "theme": "dark-ansi" / "light-ansi", flipped by hand
 #   - status line   ANSI codes only        (see bin/statusline.py)
 #   - codex         status_line_use_colors = false in ~/.codex/config.toml
 #   - vim           no colorscheme, no t_Co, no background (see .vim/vimrc)
@@ -39,6 +39,25 @@
 # well in a screenshot of prose can still be unusable for this, and the fix is
 # a better theme -- minimum-contrast and faint-opacity look like they solve it,
 # but they clamp toward black or white and take the green out of a diff.
+#
+# One floor is deliberately missing from that list, because no theme clears it.
+# Every number above measures a slot against the background. A tool that fills a
+# panel with ANSI 8 and then writes on top needs slot 8 to work as a background
+# as well, and this pair manages 2.43 on light and 2.18 on dark. Slot 8 cannot be
+# far from the background -- so faint text reads against it -- and far from the
+# foreground -- so a fill reads under it -- with enough left to survive SGR 2
+# halving one of them; measured across all 463 themes Ghostty ships, none can.
+# So that one is settled in the tool that paints the fill, never here. herdr
+# settled it by leaving this palette for Catppuccin -- see config/herdr/config.toml.
+#
+# Claude Code cannot, and it is the one thing a replacement theme should be picked
+# to fix. It fills the user's own message and has only `dark-ansi` and
+# `light-ansi` to choose between, so the light half above works (ANSI 0 on ANSI 7,
+# 3.75) and the dark half does not: 2.43 for dark-ansi, 2.87 for light-ansi, no
+# third option. It is the only sub-3:1 number left here. 15 of the 386 dark themes
+# Ghostty ships clear the existing floors and text-on-slot-8 together -- Monokai
+# Remastered 6.00, Cobalt Next Dark 4.86, Dracula 4.71, Xcode Dark hc 3.53 -- and
+# swapping the dark half in is its own piece of work, this divider included.
 theme = light:GitHub Light High Contrast,dark:GitHub Dark High Contrast
 
 # The split divider, and the one hardcoded color in this setup.

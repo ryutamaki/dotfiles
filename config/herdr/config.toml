@@ -7,30 +7,49 @@
 #
 # `herdr --default-config` prints every key with its default. Apply an edit to
 # the running server with `herdr server reload-config` -- no restart, no lost
-# panes.
+# panes. `herdr config check` validates the TOML and not the values: it says `ok`
+# for a color that is not a color, and falls back silently on a theme name it does
+# not know. Confirm a theme edit by looking at the sidebar.
 
 # Skip the first-run onboarding flow. Everything it would ask is already
 # decided here.
 onboarding = false
 
 [theme]
-# THE ONE LINE THAT MATTERS. A multiplexer sits between the agent and Ghostty,
-# which is exactly where a second palette creeps in, and a second palette would
-# break the invariant the rest of this repo is built on. `terminal` is herdr's
-# passthrough theme: its UI draws in the 16 ANSI slots and Ghostty decides what
-# they look like.
+# THE ONE LINE THAT MATTERS, and the one exception to "colors live only in
+# config/ghostty/config": herdr's chrome carries its own palette.
 #
-# This is also why there is no light/dark pair below. `auto_switch` makes herdr
-# pick between two of ITS OWN themes when the host reports an appearance
-# change; with `terminal` there is nothing to pick between. Ghostty already
-# swaps the palette live on the macOS appearance, and a UI that only ever
-# writes color numbers follows for free -- the same reason fzf and tig need no
-# light/dark notion either. Setting `auto_switch`, `light_name` or `dark_name`
-# here would replace that with herdr's own opinion.
-name = "terminal"
+# The passthrough theme, `name = "terminal"`, is the obvious choice here and does
+# not work, for two reasons sixteen ANSI slots cannot fix. A selected sidebar entry
+# is marked by filling it, and ANSI has no color meant to be a background -- slot 8
+# is chosen to read *on* one -- so that fill measured 2.43:1 against its own text
+# on the light half of the pair in config/ghostty/config and 2.18:1 on the dark
+# half. And the state dots draw in the color slots, where a high-contrast light
+# theme has to darken its yellow to survive white: GitHub Light High Contrast's
+# palette 3 is #3f2200, legible at 15:1 and not recognisable as yellow. A dot is a
+# glanceable signal, so hue is the requirement there, not contrast.
+#
+# The cost is bounded, which is the part worth not re-litigating: this palette
+# covers sidebar, tab bar, borders and overlays. Pane contents still come from
+# Ghostty, and since 0.8.0 a pane app that asks the terminal for its palette gets
+# Ghostty's answer (#1752), so every tool listed at the top of
+# config/ghostty/config is unaffected.
+name = "catppuccin-latte"
 
-# For the same reason there is no [theme.custom] block. Overriding a token
-# takes that token off the terminal palette and hardcodes it.
+# Mandatory once a theme is named, rather than a preference. `panel_bg` follows the
+# terminal background even under a named theme, while `surface0` and `surface1`
+# come from the theme -- so pinning one half lands a light fill on a dark panel.
+# Measured with `catppuccin-latte` pinned against Ghostty's dark half, the selected
+# entry's second row fell to 2.0:1 on its own fill. Switching the whole theme keeps
+# fill and panel on the same side of the midpoint. `name` above is what applies
+# when there is no appearance to follow.
+auto_switch = true
+light_name = "catppuccin-latte"
+dark_name = "catppuccin"
+
+# No [theme.custom]. A hex value there hardcodes a color outside both of this
+# repo's two sources; `reset` hands the token back to the terminal and is the only
+# form worth reaching for. This theme needs neither.
 
 # [terminal] is left at its defaults on purpose. `shell_mode` defaults to
 # "auto", which starts login shells on macOS -- that is what runs
@@ -42,3 +61,13 @@ name = "terminal"
 # [keys] is left at its defaults too: the prefix is ctrl+b, and `prefix+?`
 # lists every live binding, which is a better reference than a copy here that
 # can drift.
+
+# The one thing the theme change did not fix. herdr draws the second row of an
+# agent entry with SGR 2, which halves its distance to whatever is behind it --
+# arithmetic rather than palette, and the named theme is the worse of the two: the
+# agent name measured 1.9:1 under `terminal` and 1.5:1 here, 1.4:1 on a filled
+# entry. Turning the dim off is the whole fix, and this is the only row that needs
+# it; the spaces panel draws its second row in a real color and is left alone.
+# Everything else matches the default `rows` value exactly.
+[ui.sidebar.agents]
+rows = [["state_icon", "workspace", "tab"], [{ token = "agent", dim = false }]]
