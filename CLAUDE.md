@@ -18,9 +18,10 @@ These two invariants are the point of the current layout. Keep each one true.
 **Colors live only in `config/ghostty/config`.** Everything that draws in the
 terminal reads the theme's 16 ANSI colors from there: Claude Code through
 `"theme": "dark-ansi"`, vim by having no colorscheme and no `t_Co`, git-delta
-through `syntax-theme = none`, and fzf and tig by setting no color options.
-Restyle the whole environment by editing the `theme` line. When something new
-needs colors, point it at the terminal palette the same way.
+through `syntax-theme = none`, herdr through `[theme] name = "terminal"`, and
+fzf and tig by setting no color options. Restyle the whole environment by
+editing the `theme` line. When something new needs colors, point it at the
+terminal palette the same way.
 
 That line names two themes — `light:GitHub Light High Contrast,dark:GitHub
 Dark High Contrast` — and Ghostty picks between them from the macOS
@@ -31,6 +32,13 @@ queries with `t_RB` and sets `background` from the answer, git-delta queries
 with OSC 10/11 and picks its diff colors. Both stop asking the moment the
 answer is hardcoded — `set background=dark` in the vimrc or `light`/`dark` in
 `[delta]` — so leave those unset.
+
+herdr has a third shape of the same trap. It offers `[theme] auto_switch`,
+which sounds like following the terminal and is not: it makes herdr swap
+between two of its *own* themes on an appearance change. With `name =
+"terminal"` there is nothing to swap — Ghostty repaints the palette and herdr's
+UI follows because it only ever wrote color numbers. Leave `auto_switch`,
+`light_name`, `dark_name` and `[theme.custom]` unset.
 
 Both halves are picked for legibility, not looks, and a replacement is checked
 the same way — the config file records the measurements and the floor. The
@@ -80,11 +88,22 @@ leaves them alone; wiring them up is a manual step in README.md.
 ## Two agent skills are written here, the rest are installed
 
 `~/.agents/skills` is where the installed skills live, and it is not a git
-repository. Nearly all of them come from a single upstream repository, so
-`setup.sh` restores them with one `skills add` and nothing more is needed here
-than `claude/skill-lock.json` as the record of what was installed and when.
-That installer only fetches current, which puts skills in the same category as
+repository. All but two come from upstream — the bulk from `mattpocock/skills`,
+plus `herdr` from `herdrdev/herdr` — so `setup.sh` restores them with one
+`skills add` per source and nothing more is needed here than
+`claude/skill-lock.json` as the record of what was installed and when. That
+installer only fetches current, which puts skills in the same category as
 `claude` and `cursor-agent`: reproducible, not pinnable.
+
+Guard a new source on a skill only that source provides, never on
+`~/.agents/skills` itself — the first source to install creates that directory
+and would make every later step skip.
+
+One `skills add --agent '*'` reaches all three CLIs here, but by two different
+routes, and the difference matters when a skill appears to be missing. Claude
+Code gets a symlink at `~/.claude/skills/<name>`; codex and cursor-agent read
+`~/.agents/skills` directly and get no per-tool copy. An empty `~/.codex/skills`
+is therefore normal and not a failed install.
 
 `claude/skills/cleanup` and `claude/skills/audit-memory` are the exceptions.
 Both are authored, both are absent from that lockfile, and until they were
@@ -93,6 +112,68 @@ tracked they existed on exactly one disk. They are symlinked into
 
 Anything written rather than installed belongs in this repository for the same
 reason. The test is whether `skills add` could produce it again.
+
+## herdr is wired in both directions
+
+herdr is the one multiplexer this setup keeps — the list below used to exclude
+the whole category, and now excludes only tmux and screen. It earns the slot by
+offering three things Ghostty does not: panes that survive a closed window, one
+sidebar showing the state of every agent across every project, and a socket API
+an agent can drive from inside its own pane. It only earns it because
+`[theme] name = "terminal"` keeps it off the colors invariant; a multiplexer
+sits between the agent and Ghostty, which is exactly where a second palette
+would otherwise appear.
+
+The wiring is two independent halves, and a working install needs both:
+
+- **Agent → herdr** is the `herdr` skill, installed from `herdrdev/herdr`. It
+  teaches an agent to split panes, run commands without stealing focus, read
+  another pane's output, and wait on another agent — all through `herdr <group>
+  <verb>`, which returns JSON. It is installed rather than written, so by the
+  rule above it does not belong in this repository. Do not copy it here to edit
+  the wording; upstream is the source of truth and the lockfile is the record.
+- **herdr → agent** are the integrations, one `herdr integration install` per
+  CLI. Each is a `SessionStart` hook herdr writes and owns, so the sidebar can
+  report `working` / `blocked` / `done` from the agent itself instead of
+  guessing from the screen.
+
+Both halves are conditional on `HERDR_ENV=1`, which herdr sets in every pane it
+owns. The skill checks it before touching anything, and the hooks exit quietly
+without it, so an agent started in a plain Ghostty tab is unaffected.
+
+codex needs one thing the other two do not. It will not run a hook it has not
+been shown, so a freshly installed integration sits at a review prompt on the
+next launch and reports `0 active` until a human presses `t`. `herdr
+integration status` says `current` either way — it reports the file, not the
+trust. When codex's agent state looks stuck, check that prompt before
+suspecting herdr.
+
+Upgrading herdr is not finished when Homebrew is finished. The server keeps
+running the old binary, and a client whose protocol is newer refuses to talk to
+it — every `herdr <group> <verb>` returns `protocol_mismatch`, which takes the
+whole agent-facing surface down while the panes themselves carry on looking
+fine. `herdr status` names it: `compatible: no`, `restart_needed: yes`. The
+restart has to come from outside herdr, because stopping the server exits every
+pane process:
+
+```sh
+HERDR_SOCKET_PATH="$HOME/.config/herdr/herdr.sock" herdr server stop
+herdr
+```
+
+What that costs is bounded, and the integrations above are what bound it.
+Layout comes back, and any agent that reported a native session reference is
+relaunched with its own resume flag — `claude --resume <id>`, `codex resume
+<id>`, `cursor-agent --resume <id>` — so the conversations continue rather than
+restart. That needs integration version 6 / 5 / 1 or newer respectively, which
+is why `setup.sh` keeps them current. Scrollback does not come back:
+`pane_screen_history` is off by default because pane output holds secrets, and
+it should stay off.
+
+Do not add a completion-notification hook to match codex's `turn-ended` notify.
+The sidebar already carries that signal for every agent at once, which is
+strictly more than a per-tool notification, and building both means two things
+to keep in sync.
 
 ## LANG is set, LC_ALL is not
 
@@ -109,7 +190,8 @@ When one command needs a different locale, prefix that command.
 
 Adding any of these undoes a decision rather than filling a gap:
 
-- **tmux and screen** — Ghostty owns splits and tabs.
+- **tmux and screen** — herdr is the multiplexer, and it is agent-aware in a
+  way neither of them is. Ghostty still owns the window.
 - **A vim plugin manager** — vim is for commit messages and quick edits.
 - **A zsh plugin manager** — `brew bundle` fills that role; plugins are
   Homebrew packages sourced by `.zsh/plugins.zsh`.

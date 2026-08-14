@@ -6,6 +6,12 @@
 ## Terminal (the single source of colors -- see config/ghostty/config)
 cask "ghostty"
 
+# The multiplexer the agents run inside. Its own installer
+# (herdr.dev/install.sh) only ever fetches current, the same trap claude and
+# cursor-agent are in below -- Homebrew carries it, so it is pinnable and it
+# belongs here instead. Configured in config/herdr/config.toml.
+brew "herdr"
+
 ## AI CLIs
 # claude and cursor-agent ship their own installers and are handled by
 # bin/setup.sh -- Homebrew has no formula for them.

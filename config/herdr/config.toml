@@ -1,0 +1,44 @@
+# herdr -- symlinked to ~/.config/herdr/config.toml by bin/setup.sh
+#
+# herdr is the multiplexer this setup used to do without. It earns the slot by
+# offering three things Ghostty does not: panes that survive a closed window,
+# one sidebar showing the state of every agent across every project, and a
+# socket API an agent can drive from inside its own pane. See CLAUDE.md.
+#
+# `herdr --default-config` prints every key with its default. Apply an edit to
+# the running server with `herdr server reload-config` -- no restart, no lost
+# panes.
+
+# Skip the first-run onboarding flow. Everything it would ask is already
+# decided here.
+onboarding = false
+
+[theme]
+# THE ONE LINE THAT MATTERS. A multiplexer sits between the agent and Ghostty,
+# which is exactly where a second palette creeps in, and a second palette would
+# break the invariant the rest of this repo is built on. `terminal` is herdr's
+# passthrough theme: its UI draws in the 16 ANSI slots and Ghostty decides what
+# they look like.
+#
+# This is also why there is no light/dark pair below. `auto_switch` makes herdr
+# pick between two of ITS OWN themes when the host reports an appearance
+# change; with `terminal` there is nothing to pick between. Ghostty already
+# swaps the palette live on the macOS appearance, and a UI that only ever
+# writes color numbers follows for free -- the same reason fzf and tig need no
+# light/dark notion either. Setting `auto_switch`, `light_name` or `dark_name`
+# here would replace that with herdr's own opinion.
+name = "terminal"
+
+# For the same reason there is no [theme.custom] block. Overriding a token
+# takes that token off the terminal palette and hardcodes it.
+
+# [terminal] is left at its defaults on purpose. `shell_mode` defaults to
+# "auto", which starts login shells on macOS -- that is what runs
+# /usr/libexec/path_helper and then .zprofile, which is the half of the PATH
+# story that puts $HOME/.local/bin back in front of the system directories.
+# Forcing "non_login" here would give every new pane a different PATH than
+# every Ghostty tab. See .zsh/path.zsh.
+
+# [keys] is left at its defaults too: the prefix is ctrl+b, and `prefix+?`
+# lists every live binding, which is a better reference than a copy here that
+# can drift.

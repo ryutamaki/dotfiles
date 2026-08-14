@@ -84,6 +84,7 @@ link .tigrc    "$HOME/.tigrc"
 link config/ghostty/config  "$HOME/.config/ghostty/config"
 link config/git/ignore      "$HOME/.config/git/ignore"
 link config/mise/config.toml "$HOME/.config/mise/config.toml"
+link config/herdr/config.toml "$HOME/.config/herdr/config.toml"
 
 # The two agent skills that are written here rather than installed. Everything
 # else under ~/.agents/skills comes from upstream and is reinstalled further
@@ -158,25 +159,70 @@ fi
 ##-----------------------------------------------
 #  Agent skills
 #
-#  The installed skills under ~/.agents/skills all come from one upstream
-#  repository, so restoring them is one command rather than a list.
-#  claude/skill-lock.json is the tracked record of which skills were installed
-#  and at which commit, but `skills add` only ever fetches current -- the same
-#  situation as claude and cursor-agent above -- so the lockfile is a manifest
-#  to read, not a version this can pin to.
+#  Two upstream sources, one `skills add` each. claude/skill-lock.json is the
+#  tracked record of which skills were installed and at which commit, but
+#  `skills add` only ever fetches current -- the same situation as claude and
+#  cursor-agent above -- so the lockfile is a manifest to read, not a version
+#  this can pin to.
 #
-#  --all is `--skill '*' --agent '*' -y`, which is how they were installed:
-#  every skill in the repository, exposed to every agent on the machine.
+#  Each step is guarded by a skill only that source provides, so the two are
+#  independent: neither ordering nor a half-finished earlier run can make one
+#  of them silently skip. Guarding on ~/.agents/skills itself cannot do that,
+#  because the first source to install creates it for everyone.
 #
-#  The two skills missing from that lockfile are authored in this repository
-#  and are symlinked into place by the link lines further up instead.
+#  The two skills in neither lockfile are authored in this repository and are
+#  symlinked into place by the link lines further up instead.
 ##-----------------------------------------------
 
-if [ -d "$HOME/.agents/skills" ]; then
-    info "agent skills already installed"
+# --all is `--skill '*' --agent '*' -y`: every skill in the repository, exposed
+# to every agent on the machine.
+if [ -d "$HOME/.agents/skills/setup-matt-pocock-skills" ]; then
+    info "mattpocock skills already installed"
 else
     info "installing agent skills from mattpocock/skills"
     npx -y skills add mattpocock/skills --global --all
+fi
+
+# herdr ships the skill that teaches an agent to drive the multiplexer it is
+# running inside. One skill out of that repository, every agent on the machine.
+# Claude Code gets a symlink under ~/.claude/skills; codex and cursor-agent
+# read ~/.agents/skills directly.
+if [ -d "$HOME/.agents/skills/herdr" ]; then
+    info "herdr skill already installed"
+else
+    info "installing the herdr skill from herdrdev/herdr"
+    npx -y skills add herdrdev/herdr --skill herdr --agent '*' --global -y
+fi
+
+
+##-----------------------------------------------
+#  herdr integrations
+#
+#  The skill above is one direction -- the agent driving herdr. These are the
+#  other -- herdr reading the agent, so the sidebar can say which one is
+#  working, blocked or done instead of guessing from the screen.
+#
+#  Each is a SessionStart hook herdr writes and owns, registered in a file this
+#  repository deliberately does not track: ~/.claude/settings.json,
+#  ~/.codex/hooks.json, ~/.cursor/hooks.json.
+#
+#  Installing is skipped when `status` already says `current`, and that guard is
+#  load-bearing rather than a speed-up. codex will not run a hook it has not
+#  been shown: it holds a new one at a review prompt on the next launch, and
+#  rewriting the script is what makes it new again. An unguarded re-install
+#  would silently un-trust codex's hook every time this script ran. Giving that
+#  confirmation is in the manual list below, because only a human can.
+##-----------------------------------------------
+
+if command -v herdr > /dev/null; then
+    for target in claude codex cursor; do
+        if herdr integration status | grep -q "^$target: current"; then
+            info "herdr integration already current: $target"
+        else
+            info "installing herdr integration: $target"
+            herdr integration install "$target" > /dev/null
+        fi
+    done
 fi
 
 
@@ -203,11 +249,15 @@ cat <<MANUAL
 
            /usr/bin/python3 $DOTFILES/bin/statusline.py
 
-    6. Put your SSH keys in ~/.ssh and add the public key to GitHub
-    7. Fill in ~/.gitconfig.local and ~/.gitconfig.work if setup created them
-    8. Open Ghostty once, then allow it under
+    6. Start codex once and trust its SessionStart hook. codex holds every
+       newly installed hook at a review prompt, so herdr's agent-state
+       integration stays inert until a human presses t there. claude and
+       cursor-agent need no equivalent step.
+    7. Put your SSH keys in ~/.ssh and add the public key to GitHub
+    8. Fill in ~/.gitconfig.local and ~/.gitconfig.work if setup created them
+    9. Open Ghostty once, then allow it under
        System Settings > Privacy & Security > Accessibility
        so that cmd+\` can summon the quick terminal from any app
-    9. Restart your shell (or open a new Ghostty window)
+   10. Restart your shell (or open a new Ghostty window)
 
 MANUAL
