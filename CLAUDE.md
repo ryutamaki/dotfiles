@@ -159,6 +159,29 @@ tracked they existed on exactly one disk. They are symlinked into
 Anything written rather than installed belongs in this repository for the same
 reason. The test is whether `skills add` could produce it again.
 
+## One global instruction file, two names
+
+`agents/global.md` is what every agent reads at the start of every session, in
+every project. `setup.sh` links it to `~/.claude/CLAUDE.md`, which claude loads
+as its user memory, and to `~/.codex/AGENTS.md`, which codex loads as its global
+AGENTS.md. Nothing in the file is specific to a CLI — only the name each one
+looks for is — so it is one file with two links rather than two copies to keep
+in sync.
+
+The name is `global.md` and not `AGENTS.md` on purpose. `AGENTS.md` is the
+project-level instruction file for both codex and cursor-agent, so a file by
+that name anywhere in this repo would be read a second time, as a project
+instruction, whenever an agent works on the dotfiles themselves.
+
+cursor-agent has no third link because it has no such file. Its global layer is
+account-side User Rules, delivered in the server response rather than read from
+disk, so it is a manual step in README.md next to the status line — the same
+category as the config files this repo deliberately does not track.
+
+Keep the file short. It costs context in every session in every project, so
+anything true of only one repository belongs in that repository's `CLAUDE.md`,
+not here.
+
 ## herdr is wired in both directions
 
 herdr is the one multiplexer this setup keeps — the list below used to exclude
@@ -197,8 +220,8 @@ and falls back silently on a theme name it does not know, but it names an unknow
 key and disables that binding. So a keybinding edit is confirmed by `check`, and a
 theme edit only by looking at the sidebar after `herdr server reload-config`.
 
-The prefix is `ctrl+t`, not herdr's `ctrl+b`, and that is the one keybinding
-decision here rather than a preference left at its default. `ctrl+b` is emacs'
+The prefix is `ctrl+t`, not herdr's `ctrl+b`, and it is the keybinding decision
+that reaches outside herdr. `ctrl+b` is emacs'
 backward-char, which is pressed in every pane far more often than any multiplexer
 verb. `ctrl+t` was this repo's tmux prefix from 2014 until `.tmux.conf` was
 deleted, so it is old muscle memory rather than a new one. It is not free either:
@@ -207,6 +230,19 @@ inside a herdr pane the prefix now wins — so before rebinding anything in
 `.zsh/`, check it against the prefix. `split_vertical` moves to `prefix+|` for the
 same reason; `prefix+minus` already matches what tmux bound `-` to. Resize does
 not port at all, because herdr has `prefix+r`, a mode, and no repeat binding.
+
+Moving between agents is the other set, and it is bound because herdr leaves it
+unbound: `focus_pane_h/j/k/l` stops at the edge of a tab, while the agents sit one
+per workspace, so the only route was `prefix+w` and a pane key. `focus_agent` is
+`prefix+alt+1..9`, aimed straight at a row of the sidebar's agent panel, with
+`next_agent`/`previous_agent` on `prefix+shift+j`/`k` for the pass over whoever is
+waiting. Both halves depend on something that is not in herdr's config. The digits
+mean a fixed row only while `agent_panel_sort = "spaces"` holds the panel still —
+`priority` reorders it on every state change, which is a different tool, not a
+tuning of this one. And `alt` arrives as a modifier only because
+`config/ghostty/config` sets `macos-option-as-alt = true`, which is there for
+zsh's word motions; turning it off for an IME takes all nine digits down without
+an error.
 
 One part of the invariant turns out to depend on herdr's version rather than its
 config. 0.8.0 is the release where "pane applications that query OSC 4 palette

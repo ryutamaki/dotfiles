@@ -92,6 +92,14 @@ link config/herdr/config.toml "$HOME/.config/herdr/config.toml"
 link claude/skills/cleanup      "$HOME/.claude/skills/cleanup"
 link claude/skills/audit-memory "$HOME/.claude/skills/audit-memory"
 
+# One instruction file, two names. claude reads ~/.claude/CLAUDE.md as its user
+# memory and codex reads a global AGENTS.md under CODEX_HOME; the content is
+# identical, so the repo keeps one copy. cursor-agent gets no line here -- its
+# equivalent is account-side User Rules, not a file, which is a manual step in
+# README.md.
+link agents/global.md "$HOME/.claude/CLAUDE.md"
+link agents/global.md "$HOME/.codex/AGENTS.md"
+
 
 ##-----------------------------------------------
 #  Machine local files (never committed)

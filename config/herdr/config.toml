@@ -85,6 +85,33 @@ prefix = "ctrl+t"
 # rejected -- the literal character is the accepted spelling.
 split_vertical = "prefix+|"
 
+# Switching agents is the one move the pane keys cannot make, and it is the move
+# this setup makes most. The agents here sit in different workspaces, one per
+# project, while focus_pane_h/j/k/l stops at the edge of a tab -- so reaching
+# another agent meant prefix+w, pick a workspace, then a pane key, three
+# decisions to land somewhere the sidebar was already showing. focus_agent
+# collapses that to one chord regardless of workspace, tab or pane: the digit is
+# the row in the sidebar's agent panel, counted from the top.
+#
+# What those digits count is agent_panel_sort at the bottom of this file, which
+# is why it is "spaces" and not "priority". "spaces" groups by space and holds
+# still, and an index is only worth learning if it holds still; opening or
+# closing a workspace is the only thing that shifts one. "priority" reorders the
+# panel on every state change, which is useful to walk and impossible to aim at.
+#
+# The alt here carries a dependency on the other config in this repo:
+# `macos-option-as-alt = true` in config/ghostty/config is what makes Option
+# arrive as a modifier rather than a composed character. Turn that off for an IME
+# and all nine of these stop working with no error to show for it.
+focus_agent = "prefix+alt+1..9"
+
+# The same panel without the counting, for the pass over whoever is waiting. j/k
+# because the panel is a vertical list and prefix+h/j/k/l is already this motion
+# one level in; shift because the unshifted pair is that binding. This is the
+# half that still works under "priority", if the sort is ever reconsidered.
+next_agent = "prefix+shift+j"
+previous_agent = "prefix+shift+k"
+
 # Nothing else is repeated here; `prefix+?` lists every live binding, which is
 # a better reference than a copy that can drift. Resize is the one deliberate
 # omission rather than an oversight: .tmux.conf had `bind -r H/J/K/L` to nudge

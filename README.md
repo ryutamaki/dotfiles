@@ -82,6 +82,13 @@ These cannot be automated:
       status_line_use_colors = false
       ```
 
+- [ ] Paste `agents/global.md` into cursor-agent's **User Rules**, in the Cursor
+      app under Settings › Rules. `setup.sh` links that file to
+      `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md`, but cursor-agent has no
+      equivalent on disk — its global layer arrives in the server response, so
+      it is account-side and cannot be symlinked. Re-paste it when that file
+      changes
+
 - [ ] Start `codex` once and press <kbd>t</kbd> at its hook review prompt.
       codex holds every newly installed hook until a human trusts it, so
       herdr's agent-state integration reports nothing until then. `claude` and
@@ -94,14 +101,25 @@ These cannot be automated:
 Run `herdr` in a project, start `claude` / `codex` / `cursor-agent` in a pane,
 and split for more. Panes keep running when the window closes; `herdr` reattaches
 to them. The sidebar shows every agent across every project and whether it is
-working, blocked or done. Mouse works everywhere; <kbd>ctrl</kbd>+<kbd>b</kbd>
+working, blocked or done. Mouse works everywhere; <kbd>ctrl</kbd>+<kbd>t</kbd>
 then <kbd>?</kbd> lists the keys.
+
+The prefix is <kbd>ctrl</kbd>+<kbd>t</kbd> rather than herdr's own
+<kbd>ctrl</kbd>+<kbd>b</kbd>, because <kbd>ctrl</kbd>+<kbd>b</kbd> is emacs'
+backward-char and gets pressed far more often than any pane command.
+<kbd>|</kbd> and <kbd>-</kbd> split, as they did under tmux. That takes
+<kbd>ctrl</kbd>+<kbd>t</kbd> away from fzf inside a pane, so its file widget
+moved to <kbd>ctrl</kbd>+<kbd>o</kbd>.
 
 Those agents can also drive herdr back. `setup.sh` installs the `herdr` skill
 into all three, so an agent that is asked to can split a pane, run a build
 beside itself without taking focus, read what came out, and wait for another
-agent to finish — through the same `herdr` CLI, which answers in JSON. It only
-does this when asked; the skill will not spawn panes on its own.
+agent to finish — through the same `herdr` CLI, which answers in JSON. The
+skill will not spawn panes on its own.
+
+There is one exception, and it is the reason `agents/global.md` exists: a dev
+server or watcher goes in its own pane without being asked, so its log is
+visible to a human rather than held in the agent's background.
 
 ```sh
 herdr agent list      # what every agent is doing, as JSON
@@ -113,7 +131,8 @@ herdr status          # client and server
 | Path | |
 |---|---|
 | `config/ghostty/config` | **The only place colors are defined.** Change the theme here and everything else follows |
-| `config/herdr/config.toml` | The multiplexer the agents run in. Its theme is `terminal`, which is what keeps it off the line above |
+| `config/herdr/config.toml` | The multiplexer the agents run in. Carries Catppuccin — the one deliberate exception to the line above, argued in the file |
+| `agents/global.md` | What every agent reads in every project. Symlinked to `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` |
 | `config/mise/config.toml` | Global Node / Ruby / Terraform versions |
 | `config/git/ignore` | Global gitignore. Symlinked to `~/.config/git/ignore`, which git reads by default |
 | `.zsh/path.zsh` | **The only place PATH is defined.** Sourced from both `.zshenv` and `.zprofile` |
