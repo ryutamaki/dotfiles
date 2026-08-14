@@ -231,18 +231,27 @@ inside a herdr pane the prefix now wins — so before rebinding anything in
 same reason; `prefix+minus` already matches what tmux bound `-` to. Resize does
 not port at all, because herdr has `prefix+r`, a mode, and no repeat binding.
 
-Moving between agents is the other set, and it is bound because herdr leaves it
+Moving between agents is the other binding, and it exists because herdr ships it
 unbound: `focus_pane_h/j/k/l` stops at the edge of a tab, while the agents sit one
-per workspace, so the only route was `prefix+w` and a pane key. `focus_agent` is
-`prefix+alt+1..9`, aimed straight at a row of the sidebar's agent panel, with
-`next_agent`/`previous_agent` on `prefix+shift+j`/`k` for the pass over whoever is
-waiting. Both halves depend on something that is not in herdr's config. The digits
-mean a fixed row only while `agent_panel_sort = "spaces"` holds the panel still —
-`priority` reorders it on every state change, which is a different tool, not a
-tuning of this one. And `alt` arrives as a modifier only because
-`config/ghostty/config` sets `macos-option-as-alt = true`, which is there for
-zsh's word motions; turning it off for an IME takes all nine digits down without
-an error.
+per workspace, so the only route to the next one was `prefix+w` and a pane key.
+`next_agent`/`previous_agent` are `ctrl+alt+n`/`p`, the second and third direct
+captures in this setup rather than prefixed bindings. That is the no-repeat gap
+again: prefix mode exits after one action, so a prefixed pair walks one entry per
+press, while a direct chord can be held and tapped. So the rule above widens —
+check a new `.zsh/` binding against `ctrl+alt+n`/`p` as well as against the prefix.
+They walk the sidebar's agent panel in whatever order `agent_panel_sort` gives it,
+so that setting stays a free choice. herdr's indexed `focus_agent` is deliberately
+still unbound — it would aim at a row number, which only holds still under
+`"spaces"`, and two keys were the smaller change.
+
+Those two letters are measured, and swapping them for a nicer pair is where an
+afternoon goes. `ctrl+alt+k` and `ctrl+alt+u` deliver no bytes at all on this
+machine — in a plain Ghostty tab as much as in a pane, with nothing in Ghostty's
+keybinds, Karabiner or the system hotkeys to blame — while `ctrl+alt+o` and
+`ctrl+alt+y` arrive and are eaten by the tty's own `DISCARD` and `DSUSP`. `herdr
+config check` says `ok` to every one of them, because the key name parses. So a
+replacement chord is confirmed with `cat -v` in a pane, the same way a theme edit
+is confirmed by looking at the sidebar.
 
 One part of the invariant turns out to depend on herdr's version rather than its
 config. 0.8.0 is the release where "pane applications that query OSC 4 palette
