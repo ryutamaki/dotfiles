@@ -23,13 +23,29 @@
 # through t_RB, git-delta through OSC 10/11. Claude Code is the one that cannot
 # ask, so its theme is pinned; see CLAUDE.md.
 
-theme = light:TokyoNight Day,dark:TokyoNight
+# Both halves are picked for legibility rather than looks, because every CLI
+# here draws its secondary text -- line numbers, timings, unchanged diff lines
+# -- with SGR 2, which Ghostty renders by blending the foreground halfway into
+# the background. That blend is what a light theme has to survive, and most do
+# not: the usual failure is a light theme carrying its dark sibling's bright
+# row, where slots 8-15 were chosen against a dark background and measure under
+# 2 against a white one. Of the 77 light themes Ghostty ships, three clear a
+# 3:1 floor on the faint blend, the dim slot and all twelve color slots at
+# once, and this pair is the only one of the three whose dark half matches it.
+# Here the faint blend lands at 3.56 on light and 4.93 on dark, and the weakest
+# color slot of either half is 3.16.
+#
+# Check a replacement the same way before swapping it in. A theme that reads
+# well in a screenshot of prose can still be unusable for this, and the fix is
+# a better theme -- minimum-contrast and faint-opacity look like they solve it,
+# but they clamp toward black or white and take the green out of a diff.
+theme = light:GitHub Light High Contrast,dark:GitHub Dark High Contrast
 
 # The split divider, and the one hardcoded color in this setup.
 #
 # Ghostty leaves split-divider-color empty by default and derives the line from
-# the background, which on TokyoNight puts it within a hair of #1a1b26 -- the
-# divider is effectively invisible. It has to be stated explicitly.
+# the background, which on a dark theme puts it within a hair of that background
+# -- the divider is effectively invisible. It has to be stated explicitly.
 #
 # It cannot be stated the way everything else here gets its colors. The option
 # takes a literal only: a palette index (`8`) and an ANSI name (`bright-black`)
@@ -38,15 +54,15 @@ theme = light:TokyoNight Day,dark:TokyoNight
 # and Ghostty has no conditional config -- so one value has to serve both
 # halves of the pair above.
 #
-# #6172b0 is that value. It is TokyoNight Day's palette 7 rather than an
-# invented color, and being a mid tone it clears both backgrounds by a similar
-# margin: 3.70 contrast against dark #1a1b26, 3.57 against light #e1e2e7. Every
-# darker or lighter candidate wins one background by losing the other -- the
-# theme's own bright black, #414868, drops to 1.91 on dark.
+# #66707b is that value. It is GitHub Light High Contrast's palette 7 rather
+# than an invented color, and being a mid tone it clears both backgrounds by a
+# similar margin: 5.04 contrast against light #ffffff, 3.89 against dark
+# #0a0c10. Every darker or lighter candidate wins one background by losing the
+# other -- the dark half's own dim gray, #9ea7b3, drops to 2.43 on light.
 #
 # This is the one line that does not follow the theme. Changing the theme pair
 # above means checking this value against the new backgrounds.
-split-divider-color = #6172b0
+split-divider-color = #66707b
 
 # The font *family* is deliberately left unset: Ghostty's built-in default is
 # fine and one less thing to install on a new machine. Only the size moves,

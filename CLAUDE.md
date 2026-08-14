@@ -22,14 +22,22 @@ through `syntax-theme = none`, and fzf and tig by setting no color options.
 Restyle the whole environment by editing the `theme` line. When something new
 needs colors, point it at the terminal palette the same way.
 
-That line names two themes — `light:TokyoNight Day,dark:TokyoNight` — and
-Ghostty picks between them from the macOS appearance, live. A tool that only
-ever writes ANSI color numbers needs no light/dark notion at all, which is most
-of the list above. The two that do have one ask the terminal for its background
-rather than being told: vim queries with `t_RB` and sets `background` from the
-answer, git-delta queries with OSC 10/11 and picks its diff colors. Both stop
-asking the moment the answer is hardcoded — `set background=dark` in the vimrc
-or `light`/`dark` in `[delta]` — so leave those unset.
+That line names two themes — `light:GitHub Light High Contrast,dark:GitHub
+Dark High Contrast` — and Ghostty picks between them from the macOS
+appearance, live. A tool that only ever writes ANSI color numbers needs no
+light/dark notion at all, which is most of the list above. The two that do
+have one ask the terminal for its background rather than being told: vim
+queries with `t_RB` and sets `background` from the answer, git-delta queries
+with OSC 10/11 and picks its diff colors. Both stop asking the moment the
+answer is hardcoded — `set background=dark` in the vimrc or `light`/`dark` in
+`[delta]` — so leave those unset.
+
+Both halves are picked for legibility, not looks, and a replacement is checked
+the same way — the config file records the measurements and the floor. The
+constraint that rules most light themes out is that they carry their dark
+sibling's bright ANSI row, which is unreadable on a light background. Fix that
+by choosing a better theme, never with `minimum-contrast` or `faint-opacity`:
+those clamp toward black or white and take the green out of a diff.
 
 Claude Code is the exception, and it is not fixable here. `"theme": "auto"` is
 accepted but in a terminal it resolves through `$COLORFGBG`, which Ghostty does
