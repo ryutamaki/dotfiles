@@ -298,12 +298,14 @@ def pr_segment(pr):
         ansi(DIM), ansi(RESET), ansi(color), pr["number"], ansi(RESET))
 
 
-def parse_ahead_behind(value):
+def parse_left_right(value):
+    # `rev-list --left-right --count A...B` prints left then right. The caller
+    # decides which is ahead and which is behind by the order it passes A and B.
     if not value:
         return 0, 0
     try:
-        ahead, behind = value.split()
-        return int(ahead), int(behind)
+        left, right = value.split()
+        return int(left), int(right)
     except (ValueError, AttributeError):
         return 0, 0
 
@@ -319,7 +321,7 @@ def git_line(cwd):
     staged = count_lines(run_git(cwd, "diff", "--cached", "--numstat"))
     modified = count_lines(run_git(cwd, "diff", "--numstat"))
     untracked = count_lines(run_git(cwd, "ls-files", "--others", "--exclude-standard"))
-    behind, ahead = parse_ahead_behind(
+    behind, ahead = parse_left_right(
         run_git(cwd, "rev-list", "--left-right", "--count", "@{upstream}...HEAD")
     )
 

@@ -2,7 +2,12 @@
 #
 # git reads this path by default (XDG), so no core.excludesfile is needed.
 # The old .gitignore.global in this repo was never wired up and therefore
-# never did anything.
+# never did anything, so nothing was carried over from it.
+#
+# settings.local.json is per-machine permission and trust state that Claude Code
+# rewrites on its own. Ignoring it here rather than per repository is deliberate:
+# it is never committable anywhere, and a global rule cannot be forgotten in a
+# new project.
 
 .DS_Store
 **/.claude/settings.local.json

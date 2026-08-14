@@ -33,7 +33,7 @@
 # 3:1 floor on the faint blend, the dim slot and all twelve color slots at
 # once, and this pair is the only one of the three whose dark half matches it.
 # Here the faint blend lands at 3.56 on light and 4.93 on dark, and the weakest
-# color slot of either half is 3.16.
+# of those twelve is 3.61 -- light's slot 14, #3192aa.
 #
 # Check a replacement the same way before swapping it in. A theme that reads
 # well in a screenshot of prose can still be unusable for this, and the fix is
