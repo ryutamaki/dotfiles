@@ -96,6 +96,20 @@ These cannot be automated:
       herdr's agent-state integration reports nothing until then. `claude` and
       `cursor-agent` need no equivalent step
 
+- [ ] Create the space the plan budgets are drawn in, and drag it to the top of
+      the sidebar:
+
+      ```sh
+      herdr workspace create --label usage --cwd "$HOME" --no-focus
+      ```
+
+      `bin/statusline.py` pushes claude's, codex's and cursor's remaining
+      budget to a space with exactly that label, and pushes nothing when there
+      is none — the rows are already named in `config/herdr/config.toml` and
+      stay empty on every other space. herdr owns the sidebar's order, so the
+      position is a drag rather than a setting. Deleting the space is the whole
+      uninstall
+
 - [ ] Restart the shell
 
 ## Agents in herdr
