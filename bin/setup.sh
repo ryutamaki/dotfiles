@@ -170,6 +170,59 @@ fi
 
 
 ##-----------------------------------------------
+#  claude's settings, merged rather than linked
+#
+#  ~/.claude/settings.json cannot be a symlink into this repo: claude rewrites
+#  it itself, and most of what ends up there is either machine state or work
+#  identity that a public repository must not carry. So the repo tracks only the
+#  decisions -- claude/settings.base.json -- and this merges them in, leaving
+#  every key it does not name untouched. CLAUDE.md argues the split in full.
+#
+#  There is no user-level overlay to do this with instead. claude reads exactly
+#  five settings sources, and the only per-user one is this file; the
+#  settings.local.json name is project-scoped, resolved against the cwd or git
+#  root, never against $HOME.
+##-----------------------------------------------
+
+claude_settings="$HOME/.claude/settings.json"
+claude_base="$DOTFILES/claude/settings.base.json"
+
+if ! command -v jq > /dev/null; then
+    warn "skipped claude settings (jq is missing; it is in the Brewfile)"
+elif [ ! -e "$claude_base" ]; then
+    warn "skip claude/settings.base.json (not in repo)"
+else
+    if [ ! -e "$claude_settings" ]; then
+        mkdir -p "$(dirname "$claude_settings")"
+        printf '{}\n' > "$claude_settings"
+        chmod 600 "$claude_settings"
+    fi
+
+    # `*` is jq's recursive merge, so permissions.defaultMode lands beside the
+    # permissions.allow entries claude wrote rather than replacing the whole
+    # object. The base is the right operand, which makes the repo win for the
+    # keys it names and lose everywhere else.
+    #
+    # Merging into a variable first means a syntax error in the live file costs
+    # nothing: without it, the redirect below would truncate the file before jq
+    # ever failed.
+    if claude_merged=$(jq -s '.[0] * .[1]' "$claude_settings" "$claude_base"); then
+        if [ "$claude_merged" = "$(cat "$claude_settings")" ]; then
+            info "claude settings already match the base"
+        else
+            # Truncated in place rather than moved over from a temp file: this
+            # file is 0600 because it holds credentials and per-directory trust
+            # levels, and a fresh temp file would arrive at the umask instead.
+            printf '%s\n' "$claude_merged" > "$claude_settings"
+            info "merged claude/settings.base.json into .claude/settings.json"
+        fi
+    else
+        warn "skipped claude settings (invalid JSON in ${claude_settings#"$HOME"/})"
+    fi
+fi
+
+
+##-----------------------------------------------
 #  Agent skills
 #
 #  Two upstream sources, one `skills add` each. claude/skill-lock.json is the
@@ -266,9 +319,10 @@ cat <<MANUAL
     3. codex           -- and sign in
     4. cursor-agent login
     5. Point claude, cursor-agent and codex at the status line. Their config
-       files are rewritten by the tools themselves, so this script does not
-       edit them; README.md has the three snippets. The command to paste,
-       with this machine's path already filled in:
+       files are rewritten by the tools themselves, so this script writes
+       nothing into them beyond the claude settings it merged above;
+       README.md has the three snippets. The command to paste, with this
+       machine's path already filled in:
 
            /usr/bin/python3 $DOTFILES/bin/statusline.py
 

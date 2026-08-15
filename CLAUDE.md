@@ -108,8 +108,79 @@ Both are the colour invariant above, not a style choice.
 The three config files it is wired into -- `~/.claude/settings.json`,
 `~/.cursor/cli-config.json`, `~/.codex/config.toml` -- are neither tracked nor
 symlinked. Each tool rewrites its own file, and each holds credentials or
-per-directory trust levels that do not belong in a public repo. `setup.sh`
-leaves them alone; wiring them up is a manual step in README.md.
+per-directory trust levels that do not belong in a public repo. Wiring the
+status line into them is a manual step in README.md. `setup.sh` writes nothing
+into two of them; the exception for claude is the section below, and it stays
+clear of the status line.
+
+## claude's settings are merged, not linked
+
+`claude/settings.base.json` holds the settings that are *decisions* -- things
+that should survive a new machine. `setup.sh` merges it into
+`~/.claude/settings.json` with `jq`'s recursive `*`, base on the right, so the
+repo wins for the keys it names and every other key is left exactly as claude
+left it. The merge is a no-op when nothing differs, which is what keeps
+`setup.sh` re-runnable.
+
+The test for whether a key belongs in that file is whether a fresh machine
+would be wrong without it. `theme`, `model`, `effortLevel`, `tui`,
+`autoCompactEnabled`, `autoCompactWindow`, `skillOverrides` and
+`permissions.defaultMode` pass it. Machine state does not -- the
+`skip*Prompt` keys record that a dialog was accepted, `statusLine` and `hooks`
+carry absolute paths and are owned by README.md and by `herdr integration
+install` respectively.
+
+**It is a merge and not a symlink for two independent reasons, either of which
+alone would settle it.** claude rewrites this file itself -- `/config`,
+`/model`, `/effort`, `/autocompact`, "always allow" on a permission prompt and
+every plugin install write `userSettings` -- so a link would mean a tool
+committing to a public repository unattended. And the file's own contents
+cannot be published: `autoMode.environment` carries the employer name, a client
+name, project directory names, and an explicit list of where the `.env` and
+`terraform.tfvars` / `terraform.tfstate` files sit, which is a map of where the
+credentials are. `permissions.additionalDirectories`
+and `permissions.allow` carry work paths and an AWS app id. That is the
+Identity rule at the end of this file, and it is why the base file is a
+whitelist: it names what goes in, so nothing arrives by being forgotten.
+
+The `.gitconfig` / `.gitconfig.local` split cannot be copied here, which is
+worth knowing before reaching for it a second time. Measured against claude
+2.1.233: there are exactly five settings sources -- `policySettings`,
+`userSettings` (`~/.claude/settings.json`), `projectSettings`
+(`<root>/.claude/settings.json`), `localSettings`
+(`<root>/.claude/settings.local.json`), `flagSettings` (`--settings`) -- and
+`localSettings` resolves against the cwd or git root, never against `$HOME`. So
+`~/.claude/settings.local.json` is not a user-level overlay; it is the
+*project*-local file for the home directory, inert unless claude is started
+with `$HOME` as the cwd. There is no `include` directive either, so the
+harmless half cannot pull in the machine-local half from inside. The merge is
+the inverse of a link, and it is the only shape left.
+
+What it costs is that changes do not flow back. Flipping the theme with
+`/config` edits the live file, and the next `setup.sh` run puts
+`claude/settings.base.json` back. That is the theme half of the invariant at
+the top of this file meeting the one setting a human is expected to flip by
+hand, so it is a real collision rather than a hypothetical -- but `setup.sh` is
+run rarely and the light half is the one with a right answer, so the base pins
+`light-ansi` and the flip stays manual.
+
+`autoCompactWindow` needs its arithmetic recorded, because the number looks
+arbitrary and is not. The setting is a window size, not a percentage, and
+claude fires auto-compact at **that value minus 33,000** -- `Bye()` holds back
+`min(maxOutputTokens, 20000)` for output and `SQo()` subtracts a further
+`13000`. So `633000` puts the trigger at 600,000 tokens. That is 60% only
+because `model` is `opus[1m]`: the effective window is
+`min(modelMax, autoCompactWindow)`, so on a 200k model the setting would do
+nothing at all. The two keys are coupled, and changing one without the other
+silently changes what the number means. Left at `auto` the trigger is 967,000,
+or 96.7%.
+
+Two displays disagree about the percentage, which is not a bug in either.
+`bin/statusline.py` reads `context_window.used_percentage`, computed against
+the raw model window, so it shows 60% at the moment of compaction. `/context`
+computes against `min(modelMax, autoCompactWindow)` instead, so it shows nearly
+100% at the same moment and grows an `Autocompact buffer` block worth the
+33,000. Read the status line when the question is "how full is the model".
 
 ## Two agent skills are written here, the rest are installed
 

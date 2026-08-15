@@ -159,7 +159,11 @@ Machine-local files are never committed: `~/.zshenv.local`,
 - **The AI CLIs' config files** — `~/.claude/settings.json`,
   `~/.cursor/cli-config.json` and `~/.codex/config.toml` each get rewritten by
   their own tool and each holds credentials or per-directory trust levels.
-  Only `bin/statusline.py` is tracked; wiring it in is a manual step above
+  Only `bin/statusline.py` is tracked; wiring it in is a manual step above.
+  `claude/settings.base.json` is the one exception, and it is a merge rather
+  than a link: it carries the handful of settings that are decisions rather
+  than machine state, and `setup.sh` merges them into `~/.claude/settings.json`
+  without touching any other key
 - **The herdr agent-state hooks** — `~/.claude/settings.json`,
   `~/.codex/hooks.json` and `~/.cursor/hooks.json`. herdr writes and owns those
   scripts; `setup.sh` calls `herdr integration install` rather than tracking a
