@@ -115,3 +115,36 @@ previous_agent = "ctrl+alt+p"
 # this is the only row that needs it; everything else matches the default `rows`.
 [ui.sidebar.agents]
 rows = [["state_icon", "workspace", "tab"], [{ token = "agent", dim = false }]]
+
+[ui]
+# Wide enough for the longest quota row below -- 6 for the name, 5 for the bar,
+# 4 for the percentage, 6 for the reset, and the spaces between. The default is
+# 26 and auto-scales to the workspace names, which stops short of this.
+sidebar_width = 30
+
+# The three plan budgets, pushed by bin/statusline.py -- its docstring carries
+# how each number is come by. They are account-wide facts, so they are here
+# rather than on the agent rows, where the same percentage would repeat once
+# per pane; the sidebar's two panels are the only surfaces in herdr that render
+# custom text, so there is no third place to put them.
+#
+# These rows only ever fill on a space labelled `usage`, and are empty on every
+# other space, which is what makes it safe to name them globally: herdr drops a
+# row whose tokens all resolve to nothing. Create a space with that name and
+# the block appears; there is none and the sidebar is exactly as it was.
+#
+# Each token is one preformatted line -- `claude ███▍░  67% →14:30` -- because
+# herdr joins tokens within a row with a separator and the columns need to line
+# up down the block instead. The bar draws what is left, not what is spent, and
+# carries its own `░` track so the eye has the full scale to read against; the
+# status line's bar has no track because the label beside it fixes the scale.
+#
+# `$rule` is the line closing the block off from the spaces below it, and it is
+# pushed rather than written here for two reasons: written here it would draw
+# under every space, and it is measured against the rows above it so it matches
+# their width instead of guessing at one.
+#
+# The block sits at the top because the `usage` space is first in the sidebar's
+# own order, which herdr persists and nothing here sets. Drag it and it moves.
+[ui.sidebar.spaces]
+rows = [["state_icon", "workspace"], ["branch", "git_status"], ["$claude"], ["$codex"], ["$cursor"], ["$rule"]]

@@ -114,6 +114,54 @@ The script writes only the 16 ANSI colors, and codex runs with
 `status_line_use_colors = false` so its line stays the terminal foreground.
 Both are the colour invariant above, not a style choice.
 
+The same script also draws all three plans' remaining budget as one block in
+herdr's sidebar, which is a second job rather than a second file for the same
+reason the first one is shared: the data is already in its hands. A status line
+is only legible in the pane drawing it, so comparing three budgets meant
+visiting three panes.
+
+The block hangs off a workspace labelled `usage` rather than off the agents,
+and that placement is the decision worth keeping. herdr has no global status
+bar; `[ui.sidebar.agents]` and `[ui.sidebar.spaces]` are the only two surfaces
+that render custom text, and a budget is an account-wide fact, so putting it on
+the agent rows printed the same percentage once per pane — six identical lines
+with six claude panes open. A space of its own says it once. The rows are named
+globally in `[ui.sidebar.spaces]` and stay empty on every other space, so
+deleting the `usage` space is the whole uninstall.
+
+Only claude's number arrives on its own, in the payload. So whichever pane is
+drawing writes the entire block, not just its own line, and claude's numbers
+are cached on the way past for the cursor-agent panes that never see them. That
+is the one real cost of not adding a daemon, and it is why the push carries a
+`ttl_ms`: leave the machine for ten minutes and the block empties rather than
+showing percentages from an hour ago.
+
+Two things about the block are deliberate and look like slips. Its bar fills
+with what is **left** and carries a `░` track, while the status line's fills
+with what is **spent** and has none — a sidebar row has no label beside it to
+say where a full bar would end, and the same window therefore reads 44% in one
+place and 56% in the other. And each row is pushed as one preformatted string
+rather than as several tokens, because herdr joins tokens within a row with a
+separator, and these need their columns to line up down the block instead.
+
+The three sources are not equally cheap, and cursor's is the one to think twice
+about before extending. claude's arrives on stdin. codex's is a file read —
+`rate_limits` sits in every `token_count` event of the newest rollout under
+`~/.codex/sessions`. cursor has neither, so it is asked over the network:
+`GetCurrentPeriodUsage` on `aiserver.v1` at `api2.cursor.sh`, with the
+`cursor-access-token` keychain item as a bearer. That reply carries both
+`totalPercentUsed` and `billingCycleEnd`, which is why only one of the three
+calls behind the TUI's `/usage` is made here.
+
+Undocumented protobuf reached with a borrowed token will break without notice,
+so it is boxed in rather than trusted: a five-minute disk cache, a two-second
+timeout, only the two numbers written to that cache — never the spend figures
+the reply also carries — and every failure returning an empty token, which
+costs the row and nothing else. macOS asks once before `security` will read
+that item, and grants it to `/usr/bin/security` rather than to the caller, so
+the prompt does not come back per tool. It does come back if cursor-agent logs
+in again and recreates the item.
+
 The three config files it is wired into -- `~/.claude/settings.json`,
 `~/.cursor/cli-config.json`, `~/.codex/config.toml` -- are neither tracked nor
 symlinked. Each tool rewrites its own file, and each holds credentials or
