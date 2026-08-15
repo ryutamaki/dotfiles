@@ -85,6 +85,7 @@ link config/ghostty/config  "$HOME/.config/ghostty/config"
 link config/git/ignore      "$HOME/.config/git/ignore"
 link config/mise/config.toml "$HOME/.config/mise/config.toml"
 link config/herdr/config.toml "$HOME/.config/herdr/config.toml"
+link config/starship.toml    "$HOME/.config/starship.toml"
 
 # The two agent skills that are written here rather than installed. Everything
 # else under ~/.agents/skills comes from upstream and is reinstalled further

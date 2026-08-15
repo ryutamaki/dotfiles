@@ -32,6 +32,10 @@ brew "fd"
 brew "tree"
 
 ## zsh
+# starship is the prompt. It replaced a hand-written PROMPT plus vcs_info, and
+# unlike the AI CLIs above it is pinnable, so it belongs here rather than in an
+# installer. Configured in config/starship.toml.
+brew "starship"
 brew "z"
 brew "zsh-completions"
 brew "zsh-syntax-highlighting"

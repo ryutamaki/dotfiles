@@ -9,6 +9,7 @@
 #   - codex         status_line_use_colors = false in ~/.codex/config.toml
 #   - vim           no colorscheme, no t_Co, no background (see .vim/vimrc)
 #   - git-delta     syntax-theme disabled  (see .gitconfig)
+#   - starship      ANSI color names only  (see config/starship.toml)
 #   - fzf / tig     no color options set
 #
 # To change the look of every one of them, change the one line below.

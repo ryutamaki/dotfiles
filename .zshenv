@@ -28,8 +28,13 @@ fi
 #
 #  LANG only. LC_ALL is deliberately not exported: it outranks every other
 #  locale variable, including a `LANG=... command` prefix, so setting it here
-#  silently disabled the `LANG=en_US.UTF-8 vcs_info` in .zsh/zshrc. Leaving it
-#  unset is what lets a single command ask for a different locale.
+#  silently disabled the `LANG=en_US.UTF-8 vcs_info` that .zsh/zshrc ran on
+#  every prompt. Leaving it unset is what lets a single command ask for a
+#  different locale.
+#
+#  That prefix is gone -- starship replaced vcs_info and parses no localized
+#  output -- so nothing in this repo demonstrates the rule any more. The rule
+#  is unchanged; only the proof of it left.
 ##-----------------------------------------------
 
 export LANG=ja_JP.UTF-8

@@ -35,3 +35,18 @@ fi
 if command -v mise > /dev/null; then
     eval "$(mise activate zsh)"
 fi
+
+
+##------------------------------------------------
+#  starship -- the prompt
+#  Configured in config/starship.toml, which is a whitelist: any module it does
+#  not name is off, including ones a future release adds.
+#
+#  Last on purpose. This is what sets PROMPT, and it registers a precmd hook of
+#  its own -- so anything above that also touches the prompt has already had
+#  its say. mise in particular hooks precmd too, and starship reads the PATH
+#  mise sets when it asks node and ruby for their versions.
+##------------------------------------------------
+if command -v starship > /dev/null; then
+    eval "$(starship init zsh)"
+fi

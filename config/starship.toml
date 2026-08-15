@@ -1,0 +1,242 @@
+# starship -- symlinked to ~/.config/starship.toml by bin/setup.sh
+#
+# The shell prompt. It replaced a hand-written zsh PROMPT plus vcs_info; what
+# it buys over that is the AWS credential expiry, the terraform workspace, and
+# git state told apart by kind rather than "there is a branch".
+#
+# TWO RULES GOVERN THIS FILE, AND BOTH ARE EASY TO BREAK WITHOUT NOTICING.
+#
+# 1. `format` below is a whitelist, not a layout.
+#
+#    starship enables most of its 100+ modules by default, so anything absent
+#    from that list is off -- including modules that do not exist yet. That is
+#    the point: an upgrade can add a module, and it cannot add it to this
+#    prompt. `package` is the one worth naming, because it is on by default,
+#    fires in any directory with a package.json, and carries a 256-color style.
+#
+# 2. Only the 16 ANSI colors from config/ghostty/config may be named here, and
+#    only 13 of those 16 are usable.
+#
+#    starship's own defaults do not respect this. Of its 109 modules, 14 ship a
+#    style outside the palette -- `terraform` is `bold 105`, `package` is
+#    `208 bold`, `gleam` is `bold #FFAFF3` -- so every module below states its
+#    style explicitly rather than inheriting one. Never run `starship preset`:
+#    every preset carries hex.
+#
+#    The three unusable slots are `black`, `white` and their bright forms.
+#    ghostty's theme line is a light/dark pair, and those two slots swap roles
+#    between the halves: ANSI 7 on the light half is a pale gray on white, ANSI
+#    0 on the dark half is near-black on near-black. The other twelve colors
+#    plus the dim slot are measured in config/ghostty/config and clear 3:1 on
+#    both halves, so they are the palette here. `bright-black` is the dim slot
+#    and is used for exactly that -- text meant to recede.
+#
+#    Nothing here fills a background, so the one contrast problem that file
+#    cannot solve -- slot 8 used *as* a background -- does not arise. Keep it
+#    that way: no `bg:` anywhere.
+#
+# Symbols follow from the same rule. starship's defaults are emoji for half the
+# modules (ruby is a gem, aws is a cloud, status is a cross mark), and an emoji
+# brings its own colors from the font, outside the palette entirely. So the
+# module labels below are text. The one glyph kept is git's branch mark, which
+# is a Nerd Font codepoint and monochrome; Ghostty embeds Symbols Nerd Font
+# 3.4.0, so it needs no font installed on a new machine.
+
+# No blank line between prompts. The old prompt had none and the density was
+# right; this is the one line to flip if it ever feels cramped.
+add_newline = false
+
+# Two lines: everything on the first, nothing but the cursor on the second.
+# A long path plus a long branch never pushes the command being typed, and a
+# copied line is the command alone.
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_state\
+$git_status\
+$nodejs\
+$ruby\
+$terraform\
+$aws\
+$cmd_duration\
+$jobs\
+$status\
+$line_break\
+$character"""
+
+# Who and where, shown only when the answer is not "me, here".
+#
+# The old prompt spent its first eight characters on `[user@host]` on a
+# single-user laptop. These two say nothing locally and appear for the two
+# cases that actually change what a command does: running as root, and being
+# on someone else's machine.
+[username]
+format = "[$user]($style) "
+style_user = "bold yellow"
+style_root = "bold red"
+show_always = false
+
+[hostname]
+format = "[$hostname]($style) "
+style = "bold green"
+ssh_only = true
+
+# The path above the repository root is dimmed and the root itself is bold, so
+# "which repo" and "where inside it" are two different questions with two
+# different weights. The old prompt printed the whole path in one color.
+#
+# Naming repo_root_style is what switches starship to repo_root_format; the
+# format itself is left at its default.
+[directory]
+style = "cyan"
+repo_root_style = "bold cyan"
+before_repo_root_style = "bright-black"
+read_only = " ro"
+read_only_style = "bold red"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+format = "[$symbol$branch]($style) "
+symbol = " "
+style = "bold purple"
+
+# Mid-operation states: REBASING 2/5, MERGING, BISECTING. Red rather than
+# starship's yellow -- this is rare, and when it shows, it is the most
+# important thing on the line.
+[git_state]
+style = "bold red"
+
+# One color per kind of change, which is the whole reason for the long format.
+# The default paints every counter the same red, so `!3` and `+3` look alike;
+# here staged is green, unstaged is yellow, untracked recedes, a conflict is
+# red and the remote gap is cyan.
+#
+# Each counter carries its own trailing space *inside* its group, so it appears
+# only when the counter does. The outer group drops the whole thing in a clean
+# tree.
+# Every symbol carries `$count` because starship's defaults do not: out of the
+# box `!` means "one or more files modified", and the number is dropped. `!3`
+# and `!30` are different situations, so each counter states its own.
+[git_status]
+format = "(([$conflicted](bold red) )([$staged](bold green) )([$modified$deleted$renamed$typechanged](bold yellow) )([$untracked](bright-black) )([$stashed](bold purple) )([$ahead_behind](bold cyan) ))"
+conflicted = "=$count"
+staged = "+$count"
+modified = "!$count"
+deleted = "✘$count"
+renamed = "»$count"
+typechanged = "~$count"
+untracked = "?$count"
+stashed = "\\$$count"
+ahead = "⇡$count"
+behind = "⇣$count"
+diverged = "⇕⇡$ahead_count⇣$behind_count"
+
+# Node and Ruby come from mise and change per repository, so the version is the
+# answer to "which one is active here". These two are the only modules in this
+# file that exec anything -- `node -v` and `ruby -v`, in matching directories
+# only, run in parallel with a 500ms cap. Delete them if the prompt ever drags.
+#
+# Detection is narrowed from starship's default, which triggers on a bare *.js
+# or *.rb file: a stray script in /tmp is not a project, and asking node for its
+# version there is both noise and the exec above. A manifest or a version file
+# is the thing that means "this directory has a toolchain".
+[nodejs]
+format = "[$symbol$version]($style) "
+symbol = "node "
+style = "bold green"
+detect_extensions = []
+detect_files = ["package.json", ".node-version", ".nvmrc"]
+detect_folders = ["node_modules"]
+
+[ruby]
+format = "[$symbol$version]($style) "
+symbol = "rb "
+style = "bold red"
+detect_extensions = []
+detect_files = ["Gemfile", ".ruby-version"]
+
+# Workspace only, never version -- the version is pinned in
+# config/mise/config.toml and repeating it every prompt says nothing. The
+# workspace is the one that decides which infrastructure an apply touches.
+#
+# This reads .terraform/environment. No exec.
+[terraform]
+format = "[$symbol$workspace]($style) "
+symbol = "tf "
+style = "bold blue"
+
+# How long the AWS credentials have left, and which profile they belong to.
+#
+# The duration is the reason this module is here. saml2aws writes
+# `x_security_token_expires` into ~/.aws/credentials and starship reads that
+# key, so the prompt counts down `(7h58m)` and then says `(EXPIRED)` -- which
+# beats finding out from a failed command. The SSO cache and
+# AWS_CREDENTIAL_EXPIRATION are read the same way. No exec; files and
+# environment only.
+#
+# The module appears only where there are usable credentials, but it is not
+# scoped to a directory, so it sits in every prompt once logged in. That is the
+# intent: it is a session clock, not a project marker.
+#
+# The format is split into three groups rather than written as one string, and
+# that is load-bearing. `$profile` is empty whenever no AWS_PROFILE is exported
+# -- the common case, since the default profile is implicit -- and starship
+# renders a group when *any* variable in it is set, nested groups included. So
+# a single `[$symbol$profile ...]` group cannot be made to drop its own
+# separator, and the unnamed case comes out as `aws  (EXPIRED)` with a hole in
+# it. Keeping each separator inside the group that owns it gives `aws (EXPIRED)`
+# unnamed and `aws prod (7h58m)` named. Tested both ways; there is no
+# arrangement that hides the whole module when only the profile is missing.
+#
+# $region is left out. It is long, it is nearly always the same one, and the
+# profile name already implies it.
+[aws]
+format = "[$symbol]($style)([ $profile]($style))([ \\($duration\\)]($style)) "
+symbol = "aws"
+style = "bold yellow"
+expiration_symbol = "EXPIRED"
+
+# Anything slower than two seconds gets its time recorded. Dim, because it is
+# about the command that already finished.
+[cmd_duration]
+format = "[took $duration]($style) "
+style = "bright-black"
+min_time = 2000
+
+# One background job is a mark, two or more get a count.
+[jobs]
+format = "[$symbol$number]($style) "
+symbol = "✦"
+style = "bold cyan"
+
+# Failures only. The old prompt printed the exit code of every command,
+# including the 0s, which is a colored box that means nothing 95% of the time.
+# starship renders nothing at all when the last command succeeded.
+#
+# pipestatus is on because a pipeline hides its failures: `curl … | jq .` exits
+# 0 when curl dies, and `[1|0]` is the only way to see it from the prompt.
+# Successful segments are dim so the failing one is what stands out.
+#
+# pipestatus_format drops the `=> $symbol$status` summary starship appends by
+# default. The summary is the *last* command's code, which the bracket list
+# already ends with, and on a pipeline that ends in success it renders as a
+# dangling `=> ` with nothing after it. A command that is not a pipeline never
+# reaches this format -- a one-element pipestatus falls back to `format` above
+# and reads `✘1`.
+[status]
+disabled = false
+format = "[$symbol$status]($style) "
+symbol = "✘"
+style = "bold red"
+success_style = "bright-black"
+failure_style = "bold red"
+pipestatus = true
+pipestatus_format = "\\[$pipestatus\\] "
+pipestatus_segment_format = "[$status]($style)"
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"

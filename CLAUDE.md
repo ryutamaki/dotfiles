@@ -18,9 +18,18 @@ These two invariants are the point of the current layout. Keep each one true.
 **Colors live only in `config/ghostty/config`, for everything that draws inside
 a pane.** Those all read the theme's 16 ANSI colors from there: Claude Code
 through `"theme": "dark-ansi"` or `"light-ansi"`, vim by having no colorscheme and
-no `t_Co`, git-delta through `syntax-theme = none`, and fzf and tig by setting no
-color options. Restyle all of them by editing the `theme` line. When something new
-needs colors, point it at the terminal palette the same way.
+no `t_Co`, git-delta through `syntax-theme = none`, starship by naming ANSI
+colors and nothing else, and fzf and tig by setting no color options. Restyle
+all of them by editing the `theme` line. When something new needs colors, point
+it at the terminal palette the same way.
+
+starship is the one on that list that has to be held to it by hand, because it
+is the only one shipping a palette of its own. 14 of its 109 modules default to
+a color this file cannot reach — `terraform` is `bold 105`, `package` is
+`208 bold`, `gleam` is a hex — so `config/starship.toml` states a style for
+every module it enables and enables modules by name. Its own header carries the
+rule; the thing to know from here is that `starship preset` writes hex and must
+never be run against that file.
 
 herdr's own chrome — sidebar, tab bar, borders, overlays — is the one exception,
 and it is a decision rather than an oversight. It carries Catppuccin;
@@ -380,12 +389,16 @@ to keep in sync.
 
 `.zshenv` exports `LANG` and stops there. `LC_ALL` outranks every other locale
 variable, including a one-off `LANG=... command` prefix, so exporting it turns
-those prefixes into no-ops. That is not hypothetical: the
+those prefixes into no-ops. That was not hypothetical: the
 `LANG=en_US.UTF-8 vcs_info` in `.zsh/zshrc` sat there doing nothing for as long
 as `LC_ALL` was set beside `LANG`.
 
-Adding `export LC_ALL=$LANG` back looks harmless and silently breaks it again.
-When one command needs a different locale, prefix that command.
+That prefix is gone with vcs_info — starship reads git through a library rather
+than parsing localized output, so it needs no locale of its own. Nothing here
+demonstrates the rule any more, which makes it easier to undo by accident, not
+harder: adding `export LC_ALL=$LANG` back now breaks nothing visible today and
+the next `LANG=... command` written months from now instead. When one command
+needs a different locale, prefix that command.
 
 ## Absent on purpose
 

@@ -135,6 +135,7 @@ herdr status          # client and server
 | `config/ghostty/config` | **The only place colors are defined.** Change the theme here and everything else follows |
 | `config/herdr/config.toml` | The multiplexer the agents run in. Carries Catppuccin — the one deliberate exception to the line above, argued in the file |
 | `agents/global.md` | What every agent reads in every project. Symlinked to `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` |
+| `config/starship.toml` | The shell prompt. A whitelist: any module it does not name is off, and every one it names states an ANSI color |
 | `config/mise/config.toml` | Global Node / Ruby / Terraform versions |
 | `config/git/ignore` | Global gitignore. Symlinked to `~/.config/git/ignore`, which git reads by default |
 | `.zsh/path.zsh` | **The only place PATH is defined.** Sourced from both `.zshenv` and `.zprofile` |
