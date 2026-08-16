@@ -16,21 +16,17 @@ codex has no equivalent hook -- it renders a status line from a fixed set of
 built-in items, chosen in `[tui] status_line` of ~/.codex/config.toml. That
 list is kept pointing at the same facts this script prints.
 
-Inside a herdr pane this also draws one block in herdr's sidebar, holding all
-three plans' remaining budget at once:
+Inside a herdr pane this also draws one block in herdr's sidebar, holding how
+much of all three plans has been spent, and when each comes back:
 
-    claude ███▍░  67% →14:30
-    codex  ██▎░░  44% →8/19
-    cursor ███▊░  65% →8/21
+    claude █▋░░░  33% →14:30
+    codex  ██▊░░  56% →8/19
+    cursor █▊░░░  35% →8/21
 
-A status line is only legible in the pane drawing it, so comparing three
-budgets meant visiting three panes. The block is not attached to any of them:
-it goes on a workspace labelled `usage`, whose rows are named in
+It goes on a workspace labelled `usage`, whose rows are named in
 `[ui.sidebar.spaces]` of config/herdr/config.toml. Create that space and the
-block appears; there isn't one and nothing is pushed. herdr has no global
-status bar -- the sidebar's two panels are the only surfaces that render custom
-text -- and hanging the block off the agent rows instead repeats one
-account-wide fact once per pane.
+block appears; there isn't one and nothing is pushed. CLAUDE.md argues why it
+sits there rather than on the agent rows.
 
 Only claude's number arrives here on its own, in the payload; the other two are
 gone looking for, which is why any pane drawing a status line writes the whole
@@ -40,9 +36,10 @@ block rather than just its own line:
     codex    the last `token_count` of the newest ~/.codex/sessions rollout
     cursor   asked for over the network, with the token cursor-agent stored
 
-So the block depends on some claude or cursor-agent pane being drawn, which is
-why the push carries a TTL. Leave the machine for ten minutes and the block
-empties rather than showing percentages from an hour ago.
+So nothing writes the block unless a claude or cursor-agent pane is drawing
+one, and "always visible" is really "visible while one of those two is on
+screen". Ten minutes of codex alone, or of a closed laptop, and the TTL empties
+it. That is the shape of the gap, and it is the price of adding no daemon.
 
 Colors are the 16 ANSI ones, so the terminal theme in config/ghostty/config
 is still the only place a palette is defined. Nothing here picks an RGB value.
@@ -74,17 +71,17 @@ HERDR_SOURCE = "statusline:quota"
 # between draws and still clears the block before its numbers are worth
 # mistrusting. The reset stamp is absolute and does not go stale with it.
 QUOTA_TTL_MS = 600000
-# One stamp for every pane, because they are all writing the same block.
+# One stamp for every pane, because they are all writing the same block, and
+# ten seconds because that is the finest the numbers behind it ever move.
 QUOTA_STAMP = os.path.join(PR_CACHE_DIR, "quota-push")
 QUOTA_INTERVAL = 10
-# The block lands on a space with this label, and nowhere if there is none.
 USAGE_WORKSPACE = "usage"
 
-# The bar draws its own track, so it needs a glyph for an empty cell as well
-# as the eighths that fill one. Five cells at eight steps each is finer than
-# the number beside it, which is rounded to a whole percent.
-BAR_FILL = "▏▎▍▌▋▊▉█"
-BAR_TRACK = "░"
+# Five cells at eight steps each, which is finer than the whole percent beside
+# it. `░` rather than a space in the first slot is what gives the sidebar's bar
+# a track -- it fills with what is spent, like the status line's, but has no
+# label beside it to say where a full one would end.
+BLOCK = "░▏▎▍▌▋▊▉█"
 BAR_WIDTH = 5
 QUOTA_RULE = "─"
 
@@ -100,6 +97,9 @@ CODEX_SESSIONS = os.path.expanduser("~/.codex/sessions")
 # turn's worth of tool output without reading the whole file.
 CODEX_TAIL_BYTES = 512 * 1024
 CODEX_CACHE = os.path.join(PR_CACHE_DIR, "quota-codex.json")
+# No grace beyond the TTL: an empty read here means the window has rolled over,
+# which is a fact rather than a failure, and holding the old number would be
+# holding a wrong one.
 CODEX_CACHE_TTL = 60
 
 # cursor's plan usage is in neither its payload nor a file, so it is asked for.
@@ -112,8 +112,15 @@ CURSOR_ENDPOINT = "https://api2.cursor.sh/aiserver.v1.DashboardService/GetCurren
 CURSOR_KEYCHAIN_ITEM = "cursor-access-token"
 CURSOR_CACHE = os.path.join(PR_CACHE_DIR, "quota-cursor.json")
 CURSOR_CACHE_TTL = 300
+# Unlike codex's, an empty read here is a failed request rather than an answer,
+# so the last good number is held across one. Half an hour of held number is
+# the point at which it stops being worth more than a blank row.
+CURSOR_MAX_AGE = 1800
 CURSOR_TIMEOUT = 2.0
-CURSOR_KEYCHAIN_TIMEOUT = 3.0
+# A read that does not prompt measures 0.02s. This is only ever hit when macOS
+# has put a dialog up, and the two timeouts together have to stay under the 5s
+# cursor allows the whole script.
+CURSOR_KEYCHAIN_TIMEOUT = 1.0
 
 
 RESET = "\033[0m"
@@ -156,20 +163,22 @@ def usage_color(value):
     return RED
 
 
-def braille_bar(value, width=4):
-    value = pct(value)
-    level = value / 100.0
+def bar(value, width, ramp):
+    # ramp[0] is an empty cell and ramp[-1] a full one, so a ramp whose first
+    # glyph is a space leaves no track behind the bar and one whose first is
+    # `░` draws one. Only the sidebar needs the track; see BLOCK.
+    level = pct(value) / 100.0
     cells = []
     for index in range(width):
         start = index / width
         end = (index + 1) / width
         if level >= end:
-            cells.append(BRAILLE[-1])
+            cells.append(ramp[-1])
         elif level <= start:
-            cells.append(BRAILLE[0])
+            cells.append(ramp[0])
         else:
             fraction = (level - start) / (end - start)
-            cells.append(BRAILLE[min(int(fraction * (len(BRAILLE) - 1)), len(BRAILLE) - 1)])
+            cells.append(ramp[min(int(fraction * (len(ramp) - 1)), len(ramp) - 1)])
     return "".join(cells)
 
 
@@ -194,7 +203,7 @@ def usage_segment(label, value, reset_at=None):
     value = pct(value)
     segment = "{}{}{} {}{}{} {:.0f}%".format(
         ansi(DIM), label, ansi(RESET),
-        ansi(usage_color(value)), braille_bar(value), ansi(RESET),
+        ansi(usage_color(value)), bar(value, 4, BRAILLE), ansi(RESET),
         value,
     )
     reset = reset_time(reset_at)
@@ -431,6 +440,10 @@ def git_line(cwd):
 
 
 def herdr_call(method, params):
+    # The socket rather than the `herdr <group> <verb>` CLI everything else
+    # here is told to use, because this runs on every draw and spawning a
+    # binary two or three times a second to write a display token is not worth
+    # what it costs. The framing is the one herdr's own hooks use.
     path = os.environ.get("HERDR_SOCKET_PATH")
     if not path:
         return None
@@ -478,30 +491,20 @@ def reset_stamp(timestamp):
     return "{}/{}".format(when.month, when.day)
 
 
-def remaining_bar(remaining):
-    # Unlike the status line's bar this one draws its own track, because a
-    # sidebar row has nothing beside it to say how far a full bar would reach.
-    # It fills with what is left rather than what is spent, so it drains.
-    level = pct(remaining) / 100.0 * BAR_WIDTH
-    cells = []
-    for index in range(BAR_WIDTH):
-        filled = min(1.0, max(0.0, level - index))
-        if filled >= 0.999:
-            cells.append(BAR_FILL[-1])
-        elif filled <= 0.001:
-            cells.append(BAR_TRACK)
-        else:
-            cells.append(BAR_FILL[min(int(filled * len(BAR_FILL)), len(BAR_FILL) - 1)])
-    return "".join(cells)
-
-
 def quota_row(name, usage):
     if not usage or usage.get("used") is None:
         return None
 
-    remaining = 100.0 - pct(usage["used"])
-    row = "{:<6} {} {:>3.0f}%".format(name, remaining_bar(remaining), remaining)
-    stamp = reset_stamp(usage.get("resets_at"))
+    # Past its reset the percentage is not stale, it is wrong: the window has
+    # rolled over and nothing has run since to say so. No row beats a number
+    # that will never be corrected.
+    resets_at = usage.get("resets_at")
+    if resets_at is not None and as_float(resets_at) <= time.time():
+        return None
+
+    used = pct(usage["used"])
+    row = "{:<6} {} {:>3.0f}%".format(name, bar(used, BAR_WIDTH, BLOCK), used)
+    stamp = reset_stamp(resets_at)
     if stamp:
         row += " →{}".format(stamp)
     return row
@@ -526,25 +529,17 @@ def claude_usage(rate_limits):
 
 
 def newest_codex_rollout():
-    # sessions/<year>/<month>/<day>/rollout-<timestamp>-<uuid>.jsonl, every
-    # component zero-padded, so the newest is the lexicographic maximum and
-    # four listdirs beat walking the tree.
-    path = CODEX_SESSIONS
-    try:
-        for _ in range(3):
-            names = [name for name in os.listdir(path) if not name.startswith(".")]
-            if not names:
-                return ""
-            path = os.path.join(path, max(names))
-        rollouts = [
-            name for name in os.listdir(path)
-            if name.startswith("rollout-") and name.endswith(".jsonl")
-        ]
-        if not rollouts:
-            return ""
-        return os.path.join(path, max(rollouts))
-    except OSError:
+    # rollout-<timestamp>-<uuid>.jsonl under sessions/<year>/<month>/<day>, all
+    # zero-padded, so the newest is the lexicographic maximum of the names.
+    # Descending by the largest directory at each level would be cheaper and is
+    # wrong: codex leaves a day directory behind when its sessions are cleared,
+    # and one empty newest day would report no codex at all.
+    import glob as _glob
+
+    rollouts = _glob.glob(os.path.join(CODEX_SESSIONS, "*", "*", "*", "rollout-*.jsonl"))
+    if not rollouts:
         return ""
+    return max(rollouts, key=os.path.basename)
 
 
 def read_codex_usage():
@@ -570,17 +565,17 @@ def read_codex_usage():
         except Exception:
             continue
         limits = payload.get("rate_limits") or {}
-        window = limits.get("primary") or limits.get("secondary") or {}
-        if window.get("used_percent") is None:
+        # Both windows, and the nearer one to its limit wins, the same way
+        # claude's do. This plan only fills `primary`, but taking it blindly
+        # would hide a weekly limit behind a five-hour one elsewhere.
+        windows = [
+            {"used": window["used_percent"], "resets_at": window.get("resets_at")}
+            for window in (limits.get("primary"), limits.get("secondary"))
+            if window and window.get("used_percent") is not None
+        ]
+        if not windows:
             continue
-
-        # Past its reset the recorded percentage is not stale, it is wrong:
-        # the window has rolled over and codex has not been run since to say
-        # so. Nothing on disk will ever correct it, so report nothing.
-        resets_at = window.get("resets_at")
-        if resets_at is not None and as_float(resets_at) <= time.time():
-            return None
-        return {"used": window["used_percent"], "resets_at": resets_at}
+        return max(windows, key=lambda window: pct(window["used"]))
     return None
 
 
@@ -636,53 +631,56 @@ def fetch_cursor_usage():
     return {"used": used, "resets_at": ends_at or None}
 
 
-def cached(path, ttl, fetch):
+def read_usage(path, max_age):
+    # `at` is when the numbers were obtained, `tried` when one was last
+    # attempted. They part company when a fetch fails, which is the whole
+    # reason there are two of them.
     try:
         with open(path) as fh:
             entry = json.load(fh)
-        if time.time() - entry.get("ts", 0) < ttl:
-            return entry.get("usage")
     except Exception:
-        pass
+        return None, 0.0, 0.0
 
-    usage = fetch()
+    at = as_float(entry.get("at"))
+    tried = as_float(entry.get("tried"))
+    if time.time() - at >= max_age:
+        return None, 0.0, tried
+    return entry.get("usage"), at, tried
 
+
+def write_usage(path, usage, at):
     # Only the two numbers are written. cursor's reply also carries what the
     # plan has been spent down to in cents, which has no business in a cache.
     try:
         os.makedirs(PR_CACHE_DIR, exist_ok=True)
         with open(path, "w") as fh:
-            json.dump({"ts": time.time(), "usage": usage}, fh)
-    except OSError:
-        pass
-
-    return usage
-
-
-def store_claude_usage(usage):
-    # claude's numbers arrive on stdin, so they are only in hand while a claude
-    # pane is drawing. The sidebar block is not tied to a pane, and has to be
-    # writable from a cursor-agent pane too, so what arrives here is kept.
-    try:
-        os.makedirs(PR_CACHE_DIR, exist_ok=True)
-        with open(CLAUDE_CACHE, "w") as fh:
-            json.dump({"ts": time.time(), "usage": usage}, fh)
+            json.dump({"at": at, "tried": time.time(), "usage": usage}, fh)
     except OSError:
         pass
 
 
-def load_claude_usage():
-    try:
-        with open(CLAUDE_CACHE) as fh:
-            entry = json.load(fh)
-    except Exception:
-        return None
-    if time.time() - entry.get("ts", 0) >= CLAUDE_CACHE_TTL:
-        return None
-    return entry.get("usage")
+def fetched_usage(path, ttl, max_age, fetch):
+    usage, at, tried = read_usage(path, max_age)
+    if time.time() - tried < ttl:
+        return usage
+
+    fresh = fetch()
+
+    # A fetch that comes back empty does not throw away one that did not, so a
+    # single network blip costs nothing. `tried` moves either way, so a broken
+    # network is retried on the interval rather than on every draw, and `at`
+    # stays put, which is what finally clears a number nothing can refresh.
+    if fresh is None and usage is not None:
+        write_usage(path, usage, at)
+        return usage
+
+    write_usage(path, fresh, time.time())
+    return fresh
 
 
-def due(path, interval):
+def take_turn(path, interval):
+    # True at most once per interval across every pane, and the caller that
+    # gets it has already claimed the next one.
     try:
         if time.time() - os.stat(path).st_mtime < interval:
             return False
@@ -711,29 +709,26 @@ def push_quota(data):
 
     usage = claude_usage(data.get("rate_limits") or {})
     if usage:
-        store_claude_usage(usage)
+        write_usage(CLAUDE_CACHE, usage, time.time())
 
-    if not due(QUOTA_STAMP, QUOTA_INTERVAL):
+    if not take_turn(QUOTA_STAMP, QUOTA_INTERVAL):
         return
 
-    # The three budgets belong to the account, not to any one pane, so they go
-    # on a space of their own rather than being repeated down the agent list.
-    # No such space, nothing to say: this is opt-in by creating it.
     workspace_id = usage_workspace()
     if not workspace_id:
         return
 
     rows = {
-        "claude": quota_row("claude", load_claude_usage()),
-        "codex": quota_row("codex", cached(CODEX_CACHE, CODEX_CACHE_TTL, read_codex_usage)),
-        "cursor": quota_row("cursor", cached(CURSOR_CACHE, CURSOR_CACHE_TTL, fetch_cursor_usage)),
+        "claude": quota_row("claude", read_usage(CLAUDE_CACHE, CLAUDE_CACHE_TTL)[0]),
+        "codex": quota_row("codex", fetched_usage(
+            CODEX_CACHE, CODEX_CACHE_TTL, CODEX_CACHE_TTL, read_codex_usage)),
+        "cursor": quota_row("cursor", fetched_usage(
+            CURSOR_CACHE, CURSOR_CACHE_TTL, CURSOR_MAX_AGE, fetch_cursor_usage)),
     }
 
-    # The rule closes the block off from the spaces underneath it, so it is
-    # measured against what was actually drawn rather than fixed: a reset shown
-    # as a date is a character shorter than one shown as a clock. It is pushed
-    # with the rows rather than written into the config so that it leaves when
-    # they do, instead of outliving them as a line under nothing.
+    # Measured against what was actually drawn rather than fixed, because a
+    # reset shown as a date is a character shorter than one shown as a clock.
+    # Pushed with the rows so that it leaves when they do.
     widths = [len(row) for row in rows.values() if row]
     rows["rule"] = QUOTA_RULE * max(widths) if widths else None
 
@@ -764,6 +759,11 @@ def main():
             lines.append(line)
 
     print("\n".join(lines))
+
+    # Flushed before the sidebar work rather than at exit, because that work
+    # can outlast the host's patience -- cursor kills this at 5s and a cold
+    # cursor fetch can spend 5 of those -- and a buffered line dies with it.
+    sys.stdout.flush()
 
     # After the print, and never allowed to reach it: the sidebar is a bonus,
     # the status line is the job.

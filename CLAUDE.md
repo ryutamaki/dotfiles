@@ -114,11 +114,11 @@ The script writes only the 16 ANSI colors, and codex runs with
 `status_line_use_colors = false` so its line stays the terminal foreground.
 Both are the colour invariant above, not a style choice.
 
-The same script also draws all three plans' remaining budget as one block in
-herdr's sidebar, which is a second job rather than a second file for the same
-reason the first one is shared: the data is already in its hands. A status line
-is only legible in the pane drawing it, so comparing three budgets meant
-visiting three panes.
+The same script also draws how much of all three plans has been spent as one
+block in herdr's sidebar, which is a second job rather than a second file for
+the same reason the first one is shared: the data is already in its hands. A
+status line is only legible in the pane drawing it, so comparing three budgets
+meant visiting three panes.
 
 The block hangs off a workspace labelled `usage` rather than off the agents,
 and that placement is the decision worth keeping. herdr has no global status
@@ -136,13 +136,12 @@ is the one real cost of not adding a daemon, and it is why the push carries a
 `ttl_ms`: leave the machine for ten minutes and the block empties rather than
 showing percentages from an hour ago.
 
-Two things about the block are deliberate and look like slips. Its bar fills
-with what is **left** and carries a `░` track, while the status line's fills
-with what is **spent** and has none — a sidebar row has no label beside it to
-say where a full bar would end, and the same window therefore reads 44% in one
-place and 56% in the other. And each row is pushed as one preformatted string
-rather than as several tokens, because herdr joins tokens within a row with a
-separator, and these need their columns to line up down the block instead.
+Both bars fill with what is **spent**, and that is worth keeping true. The
+sidebar's carries a `░` track and the status line's does not, because a sidebar
+row has no label beside it to say where a full bar would end — but the
+direction is the same in both, so the same window never reads two different
+numbers in two places. A bar that drained instead was tried and reverted for
+exactly that reason.
 
 The three sources are not equally cheap, and cursor's is the one to think twice
 about before extending. claude's arrives on stdin. codex's is a file read —
@@ -156,11 +155,9 @@ calls behind the TUI's `/usage` is made here.
 Undocumented protobuf reached with a borrowed token will break without notice,
 so it is boxed in rather than trusted: a five-minute disk cache, a two-second
 timeout, only the two numbers written to that cache — never the spend figures
-the reply also carries — and every failure returning an empty token, which
-costs the row and nothing else. macOS asks once before `security` will read
-that item, and grants it to `/usr/bin/security` rather than to the caller, so
-the prompt does not come back per tool. It does come back if cursor-agent logs
-in again and recreates the item.
+the reply also carries — and one failed request never discarding the number
+before it, so a blip costs nothing and a real outage costs the row rather than
+the truth.
 
 The three config files it is wired into -- `~/.claude/settings.json`,
 `~/.cursor/cli-config.json`, `~/.codex/config.toml` -- are neither tracked nor

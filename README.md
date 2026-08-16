@@ -103,12 +103,10 @@ These cannot be automated:
       herdr workspace create --label usage --cwd "$HOME" --no-focus
       ```
 
-      `bin/statusline.py` pushes claude's, codex's and cursor's remaining
-      budget to a space with exactly that label, and pushes nothing when there
-      is none — the rows are already named in `config/herdr/config.toml` and
-      stay empty on every other space. herdr owns the sidebar's order, so the
-      position is a drag rather than a setting. Deleting the space is the whole
-      uninstall
+      `bin/statusline.py` pushes how much of claude's, codex's and cursor's
+      plans has been spent to a space with exactly that label, and pushes
+      nothing when there is none. herdr owns the sidebar's order, so the
+      position is a drag rather than a setting
 
 - [ ] Restart the shell
 
