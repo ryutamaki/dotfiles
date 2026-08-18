@@ -6,6 +6,19 @@
 ## Terminal (the single source of colors -- see config/ghostty/config)
 cask "ghostty"
 
+## Launcher
+# cmd+space, in place of Spotlight. Spotlight stopped launching applications on
+# this machine under macOS 26 -- not an index problem, `mdfind` still returns
+# every app, so it is the Spotlight UI above it and nothing in this repo can
+# reach it. Raycast keeps its own application list, so it is unaffected either
+# way.
+#
+# Its preferences are not tracked. Raycast rewrites them itself and they carry
+# account state, which puts them in the same category as the AI CLIs' config
+# files below: taking cmd+space is a manual step in README.md, and that step is
+# also what frees the shortcut from Spotlight.
+cask "raycast"
+
 # The multiplexer the agents run inside. Its own installer
 # (herdr.dev/install.sh) only ever fetches current, the same trap claude and
 # cursor-agent are in below -- Homebrew carries it, so it is pinnable and it

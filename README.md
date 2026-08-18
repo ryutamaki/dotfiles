@@ -57,6 +57,13 @@ These cannot be automated:
 - [ ] Open Ghostty once, then allow it under **System Settings › Privacy &
       Security › Accessibility** so <kbd>cmd</kbd>+<kbd>`</kbd> can summon the
       quick terminal from any app
+- [ ] Open Raycast once and give it <kbd>cmd</kbd>+<kbd>space</kbd> as its
+      hotkey. Spotlight owns that shortcut on a fresh machine, and Raycast
+      offers to take it off Spotlight when you press it — accept. Nothing here
+      can do this step: Raycast's preferences are its own file, rewritten by
+      the app and carrying account state, so the repo tracks only the
+      `Brewfile` line. Declining is not a middle ground: the system shortcut
+      wins, so Raycast's hotkey never fires at all
 - [ ] Point the AI CLIs at `bin/statusline.py`. Their config files are not
       tracked (see below), so this is per machine. `setup.sh` prints the
       command with this machine's path already filled in:
