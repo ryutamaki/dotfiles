@@ -94,6 +94,21 @@ link claude/skills/cleanup      "$HOME/.claude/skills/cleanup"
 link claude/skills/audit-memory "$HOME/.claude/skills/audit-memory"
 link claude/skills/loop-goal    "$HOME/.claude/skills/loop-goal"
 
+# And again into ~/.agents/skills, because that is the directory codex and
+# cursor-agent read directly -- they get no per-tool copy the way claude does.
+# Without these three lines an authored skill reaches one CLI out of three:
+# `loop-goal` was invisible to codex and cursor-agent entirely, and `cleanup`
+# had drifted into a separate hand-edited fork there, so the same skill name
+# behaved differently depending on which CLI ran it. `link` moves such a file
+# aside with a timestamp rather than deleting it.
+#
+# Safe this early even though the upstream installer creates that directory
+# further down: those steps guard on a specific skill they alone provide, not
+# on the directory, which is exactly why CLAUDE.md says to guard them that way.
+link claude/skills/cleanup      "$HOME/.agents/skills/cleanup"
+link claude/skills/audit-memory "$HOME/.agents/skills/audit-memory"
+link claude/skills/loop-goal    "$HOME/.agents/skills/loop-goal"
+
 # The one script in this repo that is meant to be typed as a command, by a human
 # and by the agent it hands work to. It goes in ~/.local/bin rather than adding
 # bin/ to .zsh/path.zsh, because that directory also holds setup.sh, and having

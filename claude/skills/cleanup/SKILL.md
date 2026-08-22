@@ -23,7 +23,7 @@ PR が統合ブランチ (通常 `develop`、リポジトリによっては `mai
 git remote show origin | grep "HEAD branch"
 ```
 
-通常 `develop` だが、`main` のみのリポジトリもある。git config の `init.defaultBranch` や、`origin/HEAD` の指す先を尊重する。CLAUDE.md に「`develop` が統合ブランチ」と明記されていればそちらを優先。
+通常 `develop` だが、`main` のみのリポジトリもある。git config の `init.defaultBranch` や、`origin/HEAD` の指す先を尊重する。プロジェクトの指示ファイル（`CLAUDE.md` / `AGENTS.md`）に「`develop` が統合ブランチ」と明記されていればそちらを優先。
 
 ### 2. 直前の作業ブランチを記録
 
@@ -32,7 +32,7 @@ git branch --show-current
 git status -s
 ```
 
-未コミットの変更があれば**先に user に確認**。コミットされていない作業を `git checkout` で取り残してはいけない。`?? .claude/worktrees/` のような agent 用一時ディレクトリは無視して OK。
+未コミットの変更があれば**先に user に確認**。コミットされていない作業を `git checkout` で取り残してはいけない。`?? .claude/worktrees/`、`?? .Codex/worktrees/` のような agent 用一時ディレクトリは無視して OK。
 
 ### 3. 統合ブランチへ切り替えて fast-forward
 
@@ -84,7 +84,7 @@ git worktree list
 
 判断ルール:
 
-- `locked` 付きの agent 用 worktree (`.claude/worktrees/agent-*`) は**絶対に触らない**
+- `locked` 付きの agent 用 worktree (`.claude/worktrees/agent-*`、`.Codex/worktrees/agent-*`、`~/.herdr/worktrees/*`) は**絶対に触らない**
 - それ以外の worktree について、その branch が:
   - 統合ブランチに merged 済み → 削除候補
   - 未 push の commit がある → 削除候補に**しない**
@@ -113,6 +113,6 @@ git branch -d <branch>  # worktree の branch も一緒に消す
 
 - **`develop` / `main` への直接 commit / push を発生させない**: pull --ff-only のみ
 - **`-D` での強制削除を使わない**: 必ず `-d`。失敗したら user 判断
-- **locked worktree に触らない**: `.claude/worktrees/agent-*` は parent agent の作業中ディレクトリ
+- **locked worktree に触らない**: `.claude/worktrees/agent-*` や `.Codex/worktrees/agent-*` は parent agent の作業中ディレクトリ
 - **`git stash` を勝手に積まない**: 未コミット変更があれば user に判断を仰ぐ
 - **既存 merged ブランチを一掃しない**: 「直近マージ分」のスコープを守る。広域掃除は別タスク

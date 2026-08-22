@@ -52,6 +52,14 @@ max_age_of() {
 # Warn above this. The number is a warning and never a reroute -- see budget().
 QUOTA_WARN=85
 
+# Narrowest pane a delegate may be given, in columns. Measured rather than
+# guessed: cursor-agent starts and submits fine at 53 columns, and at roughly 26
+# its TUI comes up but never accepts the prompt -- `agent start` reports ready,
+# the task lands in the composer, and no Enter submits it. That looks exactly
+# like the load-related stall and is not it, which is what makes the floor worth
+# enforcing rather than discovering three failed spawns later.
+MIN_COLS=50
+
 # Every pane this script opens is labelled with this prefix, and that label is
 # the whole registry. There is no state file: `herdr pane list` is the ledger,
 # a leaked delegate is visible in the sidebar rather than recorded somewhere
@@ -296,6 +304,43 @@ start_agent() {
     done
 }
 
+# Split the widest pane in this tab, not the caller's own.
+#
+# `--current` halved the caller's pane every time, so a third delegate arrived at
+# a quarter width and a fourth could not start at all -- and the caller, whose
+# pane is the one a human is reading, paid for every delegate it opened. Widest-
+# first spreads the cost and keeps the fan-out that --collect-all exists to serve
+# from strangling itself.
+#
+# The refusal for a tab with no room left lives in check_room, called once by
+# cmd_spawn before the retry loop rather than from in here. `die` inside this
+# function runs inside a command substitution, so its exit kills only the
+# subshell: the retry loop saw an ordinary failure, tried three times, and
+# finished by blaming a busy machine for a window that was simply full. A hard
+# refusal has to be raised where it can actually stop the caller.
+split_for_delegate() {
+    local id
+    id="$(widest_pane | cut -d' ' -f1)"
+    [ -n "$id" ] && [ "$id" != null ] || die 'could not read the pane layout'
+    herdr pane split --pane "$id" --direction right --cwd "$PWD" --no-focus \
+        | jq -r '.result.pane.pane_id'
+}
+
+# `<pane_id> <columns>` for the widest pane in this tab.
+widest_pane() {
+    herdr pane layout \
+        | jq -r '.result.layout.panes | max_by(.rect.width) | "\(.pane_id) \(.rect.width)"'
+}
+
+# Refuse a delegate this tab has no room for, with the numbers rather than a
+# pane that starts and then silently never takes a prompt.
+check_room() {
+    local id width
+    read -r id width <<<"$(widest_pane)"
+    [ -n "${width:-}" ] && [ "$width" != null ] || die 'could not read the pane layout'
+    [ $(( width / 2 )) -ge "$MIN_COLS" ] || die "no room in this tab: the widest pane is ${width} columns, a split would leave $(( width / 2 )), and a delegate needs ${MIN_COLS}. Collect and --close one, or widen the window."
+}
+
 # One attempt: split, name, start, submit. Prints the pane id on success.
 #
 # On failure it takes its own pane back down and returns 1, because there is
@@ -308,8 +353,7 @@ try_spawn() {
     local role="$1" name="$2" kind="$3" extra="$4" task="$5"
     local pane out
 
-    pane="$(herdr pane split --current --direction right --cwd "$PWD" --no-focus \
-        | jq -r '.result.pane.pane_id')"
+    pane="$(split_for_delegate)"
     [ -n "$pane" ] && [ "$pane" != null ] || die 'could not split a pane'
     herdr pane rename "$pane" "$TAG:$role:$name" >/dev/null
 
@@ -365,24 +409,40 @@ cmd_spawn() {
         die "an agent named '$name' is already live"
     fi
 
+    check_room
     warn_budget "$(plan_of "$kind")"
 
-    # Two attempts, because the wedged-TUI stall above is transient and a second
-    # pane clears it -- measured. Two and not more: if the CLI is genuinely busy
-    # rather than wedged (codex downloading the release it decided to install on
-    # launch, which also reports interactive-ready), retrying cannot help, and a
-    # loop would spend the caller's turn opening panes.
+    # Three attempts with a growing pause, and the pause is the load-bearing
+    # part. herdr's --wait requires an observed state change within 5000ms and
+    # that number is its own -- a longer --timeout here does not extend it. So on
+    # a busy machine the submit is structurally late: measured at load average
+    # 4.3 with four other agent sessions up, every attempt without a pause failed
+    # while the same call succeeded minutes earlier on an idle machine. Back-to-
+    # back retries all land in the same busy window, which is why the first
+    # version of this loop failed twice and reported a wedged CLI that was merely
+    # busy.
+    #
+    # Each attempt gets a fresh pane, so there is no risk of a doubled prompt:
+    # try_spawn closes its own pane before returning, and an empty composer
+    # cannot re-submit text a previous attempt left behind.
     local pane attempt
-    for attempt in 1 2; do
+    for attempt in 1 2 3; do
         if pane="$(try_spawn "$role" "$name" "$kind" "$extra" "$task")"; then
             printf '%s\t%s\t%s\n' "$name" "$pane" "$role"
             return 0
         fi
-        [ "$attempt" = 1 ] && printf 'delegate: %s did not pick the task up; retrying once.\n' \
-            "$name" >&2
+        case "$attempt" in
+            1) printf 'delegate: %s did not pick the task up; retrying in 3s.\n' "$name" >&2
+               sleep 3 ;;
+            2) printf 'delegate: %s stalled again; one more try in 8s.\n' "$name" >&2
+               sleep 8 ;;
+        esac
     done
 
-    printf 'delegate: %s could not be started. Nothing was left open.\n' "$name" >&2
+    printf 'delegate: %s could not be started after 3 tries. Nothing was left open.\n' \
+        "$name" >&2
+    printf 'delegate: load average is %s -- a busy machine is the usual cause.\n' \
+        "$(uptime | sed 's/.*averages*: *//')" >&2
     return 1
 }
 

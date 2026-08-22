@@ -239,7 +239,7 @@ a loop ends is fine; not knowing that it ends is not.
 | `config/git/ignore` | Global gitignore. Symlinked to `~/.config/git/ignore`, which git reads by default |
 | `.zsh/path.zsh` | **The only place PATH is defined.** Sourced from both `.zshenv` and `.zprofile` |
 | `.zsh/plugins.zsh` | zsh plugins, all installed by `brew bundle` |
-| `claude/skills/` | The agent skills written here rather than installed. Symlinked into `~/.claude/skills` |
+| `claude/skills/` | The agent skills written here rather than installed. Symlinked into **both** `~/.claude/skills` and `~/.agents/skills` — claude reads the first, codex and cursor-agent the second |
 | `claude/skill-lock.json` | Record of the installed skills `setup.sh` restores from upstream |
 | `bin/statusline.py` | The status line `claude` and `cursor-agent` both draw. `codex` gets the nearest built-in items |
 | `bin/delegate.sh` | **The only place a delegate's model string is written.** Symlinked to `~/.local/bin/delegate`. Each CLI still pins its own default in its own config |

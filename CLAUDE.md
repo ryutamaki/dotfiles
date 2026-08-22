@@ -301,6 +301,22 @@ default settled states, because the point of delegating is not to block.
 `--answer` has the same race from the other side and waits the same way, best
 effort, since `esc` settles a delegate rather than starting it.
 
+A delegate needs room, and running out of it does not look like running out of
+it. `split --current` halved the caller's own pane every time, so the third
+delegate arrived at about a quarter width and could not be prompted at all:
+`agent start` reports ready, the task lands in the composer, and no Enter
+submits it -- indistinguishable from the load-related stall below, which is what
+made it cost half an hour to find. cursor-agent is fine at 53 columns and dead
+at 26. So the split takes the widest pane in the tab rather than the caller's,
+and `check_room` refuses below `MIN_COLS` with the numbers in the message.
+
+That refusal has to be raised outside `try_spawn`, which is the second half of
+the same lesson. `die` inside a function whose output is captured by a command
+substitution exits only the subshell, so the first version's hard refusal came
+back as an ordinary failure, got retried three times, and finished by blaming a
+busy machine for a window that was merely full -- reproducing the exact
+misdiagnosis the check was added to prevent.
+
 `herdr agent start` needs the pane to be at an interactive shell prompt already,
 and a pane one millisecond old is not -- it answers `agent_pane_busy`. The retry
 is on that call rather than on a `wait-output --match` of the prompt character,
@@ -324,6 +340,13 @@ wedged rather than busy. There is nothing to close over. So `try_spawn` takes it
 own pane down and `cmd_spawn` tries once more, which clears it; a second failure
 means the CLI is genuinely occupied rather than wedged, where retrying cannot
 help, and nothing is left open.
+
+Those retries carry a growing pause, and the pause is the load-bearing part.
+herdr's `--wait` requires an observed state change within 5000ms and that number
+is its own -- a longer `--timeout` does not extend it -- so on a busy machine the
+submit is structurally late. Back-to-back retries all land in the same busy
+window, which is how the first version managed to fail twice and report a wedged
+CLI that was only occupied.
 
 `bin/delegate.sh` is symlinked to `~/.local/bin/delegate` rather than putting
 `bin/` on PATH in `.zsh/path.zsh`. That directory also holds `setup.sh`, and
@@ -456,8 +479,25 @@ is therefore normal and not a failed install.
 `claude/skills/cleanup`, `claude/skills/audit-memory` and
 `claude/skills/loop-goal` are the exceptions. All three are authored, all three
 are absent from that lockfile, and until they were tracked they existed on
-exactly one disk. They are symlinked into `~/.claude/skills` like everything
-else here. The section above argues what `loop-goal` is for.
+exactly one disk. The section above argues what `loop-goal` is for.
+
+**An authored skill needs two links, not one, and one link is worse than it
+looks.** `~/.claude/skills/<name>` reaches claude; codex and cursor-agent read
+`~/.agents/skills` directly and get no per-tool copy, so a skill linked only
+into the first reaches one CLI out of three. Found by delegating the question:
+`loop-goal` was invisible to codex and cursor-agent entirely, and `cleanup` had
+drifted into a separate hand-edited fork under `~/.agents/skills` -- 118 lines
+with four substitutions, `AGENTS.md` for `CLAUDE.md` and `.Codex/worktrees` for
+`.claude/worktrees` -- so the same skill name behaved differently depending on
+which CLI ran it. The fork is the symptom worth remembering: a per-tool path in
+an authored skill is a reason for someone to fork it, so the skill names both
+spellings and one copy serves all three, the same trade `agents/global.md` makes
+by being one file under two names.
+
+Adding those links early in `setup.sh` is safe even though the upstream
+installer creates `~/.agents/skills` further down, and for the reason stated
+above: those steps guard on a skill only their own source provides, never on the
+directory.
 
 Anything written rather than installed belongs in this repository for the same
 reason. The test is whether `skills add` could produce it again.
