@@ -98,6 +98,11 @@ These cannot be automated:
       it is account-side and cannot be symlinked. Re-paste it when that file
       changes
 
+- [ ] Set cursor-agent's default model to **Grok 4.6 Extra High** (not Fast).
+      `claude` pins Opus from the repo; this pin is machine-local, in
+      `~/.cursor/cli-config.json`, and is what a Grok session started by
+      hand inherits
+
 - [ ] Start `codex` once and press <kbd>t</kbd> at its hook review prompt.
       codex holds every newly installed hook until a human trusts it, so
       herdr's agent-state integration reports nothing until then. `claude` and
@@ -147,6 +152,78 @@ herdr agent list      # what every agent is doing, as JSON
 herdr status          # client and server
 ```
 
+## Two entry points, five models
+
+Opus 5 or Grok 4.6 Extra High gets started by hand — `claude` or
+`cursor-agent`, each with the model already pinned. Grok is the chair when
+the claude plan is empty, or when the work wants Grok in it. Either
+manages, and hands work that is not already in the chair to the rest of
+the table. Nothing asks which model at launch, because that question
+wants the shape of the work before any of it has been done.
+
+`delegate` takes a **role**, not a model. It splits a herdr pane, starts the
+right CLI on the right model, and submits the task.
+
+```sh
+delegate bulk audit "read every .tf file and list what 1.5.7 pins us to"
+delegate --collect audit         # wait for it to settle, print the tail
+delegate --status                # live delegates, and what each plan has left
+delegate --answer audit y        # leftover prompt, not the normal path
+delegate --close audit           # or --close-all
+delegate --list                  # the table, with what each plan has left
+```
+
+| Role | Goes to | For |
+|---|---|---|
+| `bulk` | Grok 4.6 High (cursor-agent) | Default — inventories, first passes, a lot of files |
+| `web` | Grok 4.6 High | Research that means reading many web pages |
+| `deep` | Grok 4.6 Extra High | When a first pass was not enough |
+| `peer` | Grok 4.6 High | A parallel subtask the caller could have done itself |
+| `hard` | Fable 5 (claude) | Scarce — genuinely hard design and argument |
+| `gpt` | GPT-5.6 Sol (codex) | Scarce — a different vendor, not a generic second pass |
+| `image` | Image 2, through codex | Images |
+
+Seven roles, four destinations. Four land on Grok because that is the plentiful
+plan — and they stay four names rather than collapsing into one, because
+`dlg:web:pricing` and `dlg:peer:tests` say different things in a sidebar holding
+four panes. Fast is deliberately off every Grok row: it doubles the token rate,
+and what you want when escalating is more thinking, not the same thinking sooner.
+
+It delegates without being asked when one of five countable things is true — a
+survey past ~10 files, research past ~3 web pages, an answer it does not hold
+with confidence, a design about to be settled, or an image in the deliverable.
+Counts rather than judgement, because reading a file yourself always *feels*
+faster than opening a pane and waiting for one, so a softer rule loses every
+time. `peer` is the one role with no trigger: "worth not waiting for" is a
+judgement call, and it would undo a list that argues only counts survive.
+
+Every delegate is a herdr agent, so the sidebar shows what it is doing.
+Approvals are answered at start so the task can finish; `blocked` is the
+leftover case, and `--answer` is the keypress. The pane's label is the only registry there is,
+so `herdr pane list` is the ledger — and every closing verb is scoped to the tab
+you are in, so `--close-all` reaches neither a pane you opened yourself nor
+another session's delegates.
+
+The three plans are metered separately, and `bin/statusline.py` already draws
+all three in the sidebar. `delegate` reads the same numbers: above 85% it says
+which plan is emptiest and which roles route there — and sends anyway, because
+quietly rerouting would put the task on a model nobody chose.
+
+## Loops whose goal is not known yet
+
+The `/loop-goal` skill is for the case where the finish line cannot be written
+at the start, and the real requirement only shows up a few iterations in.
+
+It asks for a direction, a first move, and a budget — and lets the goal itself
+be `不明`. Each iteration appends three lines to `.loop/<slug>.md`: what was
+done, what that taught you about the goal, and how the goal was rewritten (or
+`unchanged`). Three `unchanged` in a row means it has converged, and *that* is
+when a real exit check can finally be written. Five rewrites in a row means the
+direction is wrong, not that discovery is working.
+
+The budget is the one thing it will not let you leave blank. Not knowing where
+a loop ends is fine; not knowing that it ends is not.
+
 ## What lives where
 
 | Path | |
@@ -162,6 +239,7 @@ herdr status          # client and server
 | `claude/skills/` | The agent skills written here rather than installed. Symlinked into `~/.claude/skills` |
 | `claude/skill-lock.json` | Record of the installed skills `setup.sh` restores from upstream |
 | `bin/statusline.py` | The status line `claude` and `cursor-agent` both draw. `codex` gets the nearest built-in items |
+| `bin/delegate.sh` | **The only place a delegate's model string is written.** Symlinked to `~/.local/bin/delegate`. Each CLI still pins its own default in its own config |
 | `Brewfile` | Everything installed on a fresh machine |
 | `CLAUDE.md` | The rules an AI should not break when editing this repo |
 

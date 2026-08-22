@@ -4,6 +4,48 @@ Edited as `agents/global.md` in the dotfiles repo, whose `CLAUDE.md` argues the
 symlinks and the filename. Read at the start of every session in every project,
 so it holds only what is true everywhere.
 
+## Hand work to the model that fits it
+
+Whichever model is in the chair, it manages rather than does everything itself.
+`delegate` opens a herdr pane, starts the right CLI on the right model, and
+submits the task. Choose a **role**, never a model string:
+
+    bulk   default -- inventories, first passes, a lot of files
+    web    research that means reading many web pages
+    deep   when a first pass was not enough
+    peer   a parallel subtask this session could have done itself
+    hard   scarce -- genuinely hard design and argument
+    gpt    scarce -- a different vendor, not a generic second pass
+    image  images (same destination as gpt)
+
+```sh
+delegate bulk <name> "<task>"    # returns as soon as it picks the task up
+delegate --collect <name>        # wait for it to settle, print the tail
+```
+
+`delegate --help` has the rest -- `--status`, `--answer`, `--close`,
+`--close-all`.
+
+Do this without being asked when one of these is true:
+
+    a survey that will read more than ~10 files   ->  bulk
+    research spanning more than ~3 web pages      ->  web
+    an answer you are not confident in            ->  hard
+    before settling a design decision, once       ->  gpt, told to disagree
+    an image is part of what is being delivered   ->  image
+
+Counts and occasions rather than a judgement, because reading a file here always
+feels faster than opening a pane and waiting for one, so a softer rule loses
+every time. Otherwise work here: implementing, editing, refactoring, a survey of
+a few files, and talking to the human.
+
+Grok is the plentiful plan and the other two are not. When this session is
+already Grok, `bulk` / `web` / `deep` / `peer` are this session -- do not open
+another Grok for them. Only when `HERDR_ENV=1`.
+
+Every delegate is a pane, so the sidebar shows its state. Close what you opened;
+the rule below about leaving a human's pane alone applies to these too.
+
 ## Long-running processes go in a herdr pane
 
 When a task needs a dev server, a file watcher, or anything else that stays up

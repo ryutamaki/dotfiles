@@ -167,6 +167,192 @@ status line into them is a manual step in README.md. `setup.sh` writes nothing
 into two of them; the exception for claude is the section below, and it stays
 clear of the status line.
 
+## Two entry points, five models
+
+Either Opus 5 or Grok 4.6 Extra High is started by hand. `claude` is Opus
+-- `claude/settings.base.json` pins `opus[1m]` and `effortLevel: xhigh`.
+`cursor-agent` is Grok -- `~/.cursor/cli-config.json` pins it, and that file is
+machine-local for the same reason the status line is. What it pins today is
+`Cursor Grok 4.6 High` with `effort: null`; README's checklist asks for Extra
+High and that box is still unchecked, so do not read this paragraph as a
+description of the machine. Nothing is chosen at launch, and that session manages rather than does
+everything itself. Grok is the chair when the claude plan is empty, or
+when the work wants Grok in it (a review, a long loop). `bin/delegate.sh`
+is how either of them reaches a model that is not already in the chair --
+Fable 5 through claude, GPT-5.6 Sol through codex, Image 2 through
+codex, and Grok itself when the chair is Opus.
+
+**A caller picks a role, never a model string.** That is the whole point rather
+than a convenience: choosing correctly at launch means knowing the shape of the
+work before doing any of it, which is exactly what is not known then. The names
+are `bulk`, `web`, `deep`, `peer`, `hard`, `gpt`, `image`.
+
+**Destinations and roles are two tables, not one, and keeping them apart is the
+point.** Seven roles land on four destinations, so writing the model string once
+per role is precisely how the second copy that drifts gets made -- and a drifted
+one fails quietly, because cursor-agent accepts an unknown `--model` and carries
+on with something else. So `dest()` holds the four strings and nothing else does,
+`route()` maps a role to a destination and a sentence, and `resolve()` joins them
+for the three callers that need both.
+
+Roles name **what the caller is buying**, which is why four of them share the two
+Grok destinations rather than collapsing into one name. `dlg:web:pricing` and
+`dlg:peer:tests` say different things in a sidebar holding four panes, and
+`dlg:bulk:` four times does not. Grok is the plentiful plan and the other two are
+not, which is why those four are where the default sits; `hard`, `gpt` and
+`image` are the scarce slots, each something Grok cannot be -- Fable when deep
+came back short, a different vendor, images. When the chair is already Grok,
+those four roles are this session: do not open another Grok for them.
+
+Fast is absent from every Grok destination. It doubles the token rate, and what
+this table wants when it escalates is more thinking rather than the same thinking
+sooner -- so the ladder runs inside Grok's own effort levels, `high` for breadth
+and `xhigh` when breadth was not enough. That is a real difference at one rate,
+where `high-fast` and `xhigh` would have been two names for one call.
+
+All four destinations were confirmed by asking each delegate what it was:
+`Cursor Grok 4.6 High`, `Cursor Grok 4.6 Extra High`, `Fable 5 with xhigh
+effort`, `gpt-5.6-sol xhigh`. A `web` delegate was confirmed the same way to
+actually hold `WebSearch` and `WebFetch`, which is the whole basis of that role.
+Confirm a change to either table this way -- the CLI's own header line, not the
+model's answer, which gets its own name wrong.
+
+`agents/global.md` states five triggers as counts and occasions -- ten files,
+three web pages, an answer not held with confidence, before a design is settled,
+an image in the deliverable -- rather than as "when another model fits". `peer`
+carries no trigger on purpose: "a subtask worth not waiting for" is a judgement
+call, and one of those sitting in a list arguing that only counts survive would
+undo the list. That is not a style preference. The pull is toward doing the
+work in the session that was asked, because reading a file here always feels
+faster than opening a pane and waiting for one, so a trigger needing a judgement
+call loses to that pull every time and the router goes unused. Countable triggers
+are the only kind that survive their own inconvenience.
+
+Every delegate is a `herdr agent`, never a background process. That is the rule
+in `agents/global.md` about dev servers, applied to agents: the sidebar carries
+its state, and the integrations relaunch it with its resume flag when the herdr
+server restarts. It also means a delegate has no keyboard, so a permission
+prompt is a hang rather than a question. `kind_flags` is where each CLI's
+"don't ask" lives -- cursor-agent gets `--trust --force --approve-mcps`,
+codex gets `-a never -s workspace-write`, and claude already has
+`permissions.defaultMode: auto`. The deny list and the workspace sandbox
+still apply; what these flags do not cover (a hook-trust prompt, a project
+codex has never seen) still surfaces as `blocked`, and `--answer` is still a
+keypress and nothing more. A session started by hand is unchanged -- these
+flags only go on what this script starts.
+
+What that buys is measured, and so is what it costs. A `deep` delegate carrying
+those flags rewrote this file, `agents/global.md` and `bin/delegate.sh` while
+another session was mid-edit on all three -- including adding the `--force` that
+let it. That is the shape to expect rather than a bug: a delegate with approvals
+off reaches anything the deny list does not name, this repository included. The
+flags stay, deliberately. What changes is that one session owns a file at a
+time, because an untracked file has no diff to recover a lost update from.
+
+The pane label is the whole registry. `dlg:<role>:<name>` is set by
+`herdr pane rename` and read back from `.label`, so there is no state file to
+reconcile, a leaked delegate is visible in the sidebar rather than recorded
+somewhere only that script can read, and `--close-all` cannot reach a pane a
+human opened because a human's pane never carries the prefix.
+
+**The label alone is not enough, and finding that out cost another session's
+work.** `herdr pane list` is machine-wide, so the first `--close-all` reached a
+delegate a different Opus 5 session had spawned in a different workspace and took
+it down mid-task -- invisible to both sides, since neither is watching the
+other's panes. Every closing verb is now scoped to the caller's own tab, which
+is sound rather than a patch: a delegate is split from the caller's pane and
+therefore always in the caller's tab. Anything added to that script that
+enumerates panes needs the same scope, and the label is not a substitute for it.
+
+Scoping the closing verbs was half a fix, which a review caught. `herdr agent
+<name>` also resolves machine-wide, so `--collect` and `--answer` reached the
+same way -- reading another session's delegate, or sending keys into it, which is
+the worse half. Both now resolve the name to a pane in this tab first and address
+the pane, and `pane_of` / `delegate_panes` exist so the filter is written once
+rather than in each verb that needs it.
+
+Budget is warned about and never acted on. The three plans are metered
+separately and `bin/statusline.py` already writes all three to
+`$TMPDIR/statusline-cache/quota-*.json`, so the numbers cost nothing to read --
+but rerouting on them would put the task on a model nobody reasoned about, which
+is a worse outcome than running out. So above 85% it names the emptiest plan and
+the roles that route there, and sends anyway. Anything older than half an hour
+is reported as unknown rather than shown, because a stale percentage reads as a
+current one.
+
+Two races are closed there, and both look like a bug in the delegate rather than
+in the timing. **`herdr agent wait` matches the state it already sees**, so a
+`--collect` issued straight after a fire-and-forget prompt reports the state from
+before the prompt landed and returns an empty answer as though the work were
+done. The fix is `herdr agent prompt --wait --until working`, which carries
+herdr's own observed-state-change guard; `--until working` rather than the
+default settled states, because the point of delegating is not to block.
+`--answer` has the same race from the other side and waits the same way, best
+effort, since `esc` settles a delegate rather than starting it.
+
+`herdr agent start` needs the pane to be at an interactive shell prompt already,
+and a pane one millisecond old is not -- it answers `agent_pane_busy`. The retry
+is on that call rather than on a `wait-output --match` of the prompt character,
+because the character comes from `config/starship.toml`: matching it here would
+put a copy in a second place, where changing the prompt breaks spawning with no
+visible connection to the cause.
+
+One failure shape is worth recognising, because it is not the script's. codex
+upgrades itself on launch -- it did, mid-verification, 0.147.0 to 0.149.0 -- and
+during that download `herdr agent start` reports it interactive-ready while it
+is not at a prompt, so the prompt stalls. It also means a Brewfile cask can move
+without `brew bundle`, which the `--no-upgrade` note under setup.sh does not
+cover.
+
+An earlier draft left a stalled pane standing, on the theory that the CLI might
+have the text and be working. That was wrong, and measuring it is what showed
+why: `agent_prompt_stalled` means herdr observed no state change, so the turn
+never began, and a stalled cursor pane holds the task sitting **unsent** in its
+composer -- `send-keys enter` will not submit it either, because the TUI is
+wedged rather than busy. There is nothing to close over. So `try_spawn` takes its
+own pane down and `cmd_spawn` tries once more, which clears it; a second failure
+means the CLI is genuinely occupied rather than wedged, where retrying cannot
+help, and nothing is left open.
+
+`bin/delegate.sh` is symlinked to `~/.local/bin/delegate` rather than putting
+`bin/` on PATH in `.zsh/path.zsh`. That directory also holds `setup.sh`, and
+having `setup.sh` one tab-completion away in every shell is a worse trade than
+one extra symlink.
+
+## Loop goals are discovered, not declared
+
+`claude/skills/loop-goal` exists because the hard part of a loop here is not
+running it, it is that the finish line cannot be written at the start and the
+real requirement only appears a few iterations in.
+
+**The obvious answer is wrong and was rejected deliberately.** A contract file
+holding an executable `exit 0` check, refusing to start until the check is
+runnable, is a gate on precisely the thing it was supposed to help with: if the
+finish line could be written, there was no problem. So the skill requires a
+direction, a first probe, and a budget, and lets the goal be the string
+`不明`.
+
+The budget is the one field with no exemption, and that is the load-bearing
+asymmetry: the finish line is sometimes unwritable, the iteration and time
+ceiling never is. Not knowing where a loop ends is allowed; not knowing that it
+ends is not.
+
+What replaces the up-front check is a signal computed from the ledger's own
+history. Each iteration appends three lines, the third being the rewritten goal
+or the literal `unchanged`. Three consecutive `unchanged` means converged, and
+that is when the exit check becomes writable -- if it still is not, the
+`unchanged` lines were dishonest and the loop continues. Five consecutive
+rewrites means the opposite: not discovery but a wrong direction, and it goes to
+a human. So "cannot write a termination check" stops being a defect and becomes
+a measurement.
+
+The ledger is the state, which is why the skill says to put its path in the
+`/loop` prompt rather than relying on the protocol staying in context. Read back
+each iteration, it survives compaction, `/loop` re-invocation, and a herdr server
+restart. `config/git/ignore` ignores `.loop/` globally for the reason the
+`settings.local.json` line above it gives -- a loop is started in any repository,
+and a per-repository rule is one that gets forgotten in the next one.
+
 ## claude's settings are merged, not linked
 
 `claude/settings.base.json` holds the settings that are *decisions* -- things
@@ -236,7 +422,7 @@ computes against `min(modelMax, autoCompactWindow)` instead, so it shows nearly
 100% at the same moment and grows an `Autocompact buffer` block worth the
 33,000. Read the status line when the question is "how full is the model".
 
-## Two agent skills are written here, the rest are installed
+## Three agent skills are written here, the rest are installed
 
 `~/.agents/skills` is where the installed skills live, and it is not a git
 repository. All but two come from upstream — the bulk from `mattpocock/skills`,
@@ -256,10 +442,11 @@ Code gets a symlink at `~/.claude/skills/<name>`; codex and cursor-agent read
 `~/.agents/skills` directly and get no per-tool copy. An empty `~/.codex/skills`
 is therefore normal and not a failed install.
 
-`claude/skills/cleanup` and `claude/skills/audit-memory` are the exceptions.
-Both are authored, both are absent from that lockfile, and until they were
-tracked they existed on exactly one disk. They are symlinked into
-`~/.claude/skills` like everything else here.
+`claude/skills/cleanup`, `claude/skills/audit-memory` and
+`claude/skills/loop-goal` are the exceptions. All three are authored, all three
+are absent from that lockfile, and until they were tracked they existed on
+exactly one disk. They are symlinked into `~/.claude/skills` like everything
+else here. The section above argues what `loop-goal` is for.
 
 Anything written rather than installed belongs in this repository for the same
 reason. The test is whether `skills add` could produce it again.
@@ -345,7 +532,9 @@ again: prefix mode exits after one action, so a prefixed pair walks one entry pe
 press, while a direct chord can be held and tapped. So the rule above widens —
 check a new `.zsh/` binding against `ctrl+alt+n`/`p` as well as against the prefix.
 They walk the sidebar's agent panel in whatever order `agent_panel_sort` gives it,
-so that setting stays a free choice. herdr's indexed `focus_agent` is deliberately
+which is why that setting is not a free choice and `config/herdr/config.toml`
+argues it: under `"priority"` the panel reorders as agents change state, so the
+row being walked toward moves during the walk. herdr's indexed `focus_agent` is deliberately
 still unbound — it would aim at a row number, which only holds still under
 `"spaces"`, and two keys were the smaller change.
 

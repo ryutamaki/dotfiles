@@ -11,3 +11,10 @@
 
 .DS_Store
 **/.claude/settings.local.json
+
+# The goal ledgers the loop-goal skill keeps, at .loop/<slug>.md in whatever
+# repository a loop is running in. Ignored globally for the same reason as the
+# line above: a loop is started in any project, and a per-repository rule is one
+# that gets forgotten in the next one. A ledger worth keeping is moved out of
+# .loop/ and committed deliberately.
+.loop/

@@ -116,6 +116,14 @@ previous_agent = "ctrl+alt+p"
 # to the workspace names and lands under that anyway.
 sidebar_width = 30
 
+# Group the agent panel by space rather than by attention. The other value,
+# "priority", reorders rows as agents change state -- and ctrl+alt+n/p above walk
+# this panel one entry per press, so under "priority" the row being walked toward
+# moves while the walk is happening. "spaces" holds still, which is the same
+# property that would make herdr's indexed focus_agent bindable; CLAUDE.md
+# records why those are deliberately still unbound.
+agent_panel_sort = "spaces"
+
 # The one thing the theme change did not fix. herdr draws an agent entry's second
 # row with SGR 2, which halves its distance to whatever is behind it -- arithmetic
 # rather than palette, and 1.5:1 here. Turning the dim off is the whole fix, and

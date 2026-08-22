@@ -87,11 +87,19 @@ link config/mise/config.toml "$HOME/.config/mise/config.toml"
 link config/herdr/config.toml "$HOME/.config/herdr/config.toml"
 link config/starship.toml    "$HOME/.config/starship.toml"
 
-# The two agent skills that are written here rather than installed. Everything
-# else under ~/.agents/skills comes from upstream and is reinstalled further
-# down; these two appear in no lockfile and exist nowhere but this repository.
+# The agent skills that are written here rather than installed. Everything else
+# under ~/.agents/skills comes from upstream and is reinstalled further down;
+# these appear in no lockfile and exist nowhere but this repository.
 link claude/skills/cleanup      "$HOME/.claude/skills/cleanup"
 link claude/skills/audit-memory "$HOME/.claude/skills/audit-memory"
+link claude/skills/loop-goal    "$HOME/.claude/skills/loop-goal"
+
+# The one script in this repo that is meant to be typed as a command, by a human
+# and by the agent it hands work to. It goes in ~/.local/bin rather than adding
+# bin/ to .zsh/path.zsh, because that directory also holds setup.sh, and having
+# `setup.sh` a tab-completion away in every shell is a worse trade than one
+# extra symlink. The .sh is dropped: `delegate bulk ...` is the command.
+link bin/delegate.sh "$HOME/.local/bin/delegate"
 
 # One instruction file, two names. claude reads ~/.claude/CLAUDE.md as its user
 # memory and codex reads a global AGENTS.md under CODEX_HOME; the content is
@@ -237,7 +245,7 @@ fi
 #  of them silently skip. Guarding on ~/.agents/skills itself cannot do that,
 #  because the first source to install creates it for everyone.
 #
-#  The two skills in neither lockfile are authored in this repository and are
+#  The skills in neither lockfile are authored in this repository and are
 #  symlinked into place by the link lines further up instead.
 ##-----------------------------------------------
 
