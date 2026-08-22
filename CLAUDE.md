@@ -204,11 +204,22 @@ not, which is why those four are where the default sits; `hard`, `gpt` and
 came back short, a different vendor, images. When the chair is already Grok,
 those four roles are this session: do not open another Grok for them.
 
-Fast is absent from every Grok destination. It doubles the token rate, and what
-this table wants when it escalates is more thinking rather than the same thinking
-sooner -- so the ladder runs inside Grok's own effort levels, `high` for breadth
-and `xhigh` when breadth was not enough. That is a real difference at one rate,
-where `high-fast` and `xhigh` would have been two names for one call.
+Fast is absent from every Grok destination, and the price of that is measured
+rather than assumed. `cursor.com/docs/models/grok-4-6` prices standard Grok 4.6
+at $2 / $0.50 / $6 per Mtok (input / cached / output) and Fast at exactly double,
+$4 / $1 / $12; the paid plans meter a token pool rather than requests, so Fast
+drains it twice as fast. The same page also says **"Fast is the default speed
+tier on Pro and higher plans"**, which is the part worth knowing before touching
+that table: naming `high` is not picking the plain option, it is stepping down
+from the plan's own default speed in exchange for halving the rate.
+
+That is the trade taken, and it is deliberate: the pool is what runs out first,
+and what the ladder wants when it escalates is more thinking rather than the same
+thinking sooner -- `high` for breadth, `xhigh` when breadth was not enough, a
+real difference at one rate where `high-fast` and `xhigh` would have been two
+names for one call. It is also the one line here that trades away speed, which
+was named as a reason to prefer Grok in the first place, so restoring `-fast` is
+a decision to make on purpose rather than a correction.
 
 All four destinations were confirmed by asking each delegate what it was:
 `Cursor Grok 4.6 High`, `Cursor Grok 4.6 Extra High`, `Fable 5 with xhigh

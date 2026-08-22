@@ -186,8 +186,11 @@ delegate --list                  # the table, with what each plan has left
 Seven roles, four destinations. Four land on Grok because that is the plentiful
 plan — and they stay four names rather than collapsing into one, because
 `dlg:web:pricing` and `dlg:peer:tests` say different things in a sidebar holding
-four panes. Fast is deliberately off every Grok row: it doubles the token rate,
-and what you want when escalating is more thinking, not the same thinking sooner.
+four panes. Fast is deliberately off every Grok row: Cursor prices it at exactly
+double per token, and the paid plans meter tokens rather than requests. That is a
+real trade rather than a free win — Cursor's own docs say Fast is the default
+speed tier on Pro and higher, so this steps down from that default to make the
+pool last twice as long.
 
 It delegates without being asked when one of five countable things is true — a
 survey past ~10 files, research past ~3 web pages, an answer it does not hold

@@ -70,11 +70,17 @@ die() { printf 'delegate: %s\n' "$1" >&2; exit 1; }
 # other three CLIs pin their own defaults in their own config, which is a
 # different thing from this script naming one.
 #
-# Fast is absent from both Grok rungs: it doubles the token rate, and what an
-# escalation wants is more thinking rather than the same thinking sooner. So the
-# ladder runs inside Grok's own effort levels -- `high` for breadth, `xhigh` when
-# breadth was not enough -- which is a real difference at one rate where
-# `high-fast` and `xhigh` would have been two names for one call.
+# Fast is absent from both Grok rungs, and that is a paid trade rather than a
+# free one. cursor.com/docs/models/grok-4-6 prices standard at $2 / $0.50 / $6
+# per Mtok (input / cached / output) and Fast at exactly double, $4 / $1 / $12 --
+# and the same page says "Fast is the default speed tier on Pro and higher
+# plans". So naming `high` is stepping down from the plan's own default speed to
+# halve the rate at which the pool drains. Worth it here because the pool is what
+# runs out first and the ladder wants more thinking rather than the same thinking
+# sooner: `high` for breadth, `xhigh` when breadth was not enough, a real
+# difference at one rate where `high-fast` and `xhigh` are two names for one
+# call. Restoring `-fast` is a decision about speed against capacity, not a typo
+# to fix.
 dest() {
     case "$1" in
         grok)      echo 'cursor|--model cursor-grok-4.6-high' ;;
