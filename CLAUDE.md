@@ -457,9 +457,23 @@ run rarely and the light half is the one with a right answer, so the base pins
 
 `autoCompactWindow` needs its arithmetic recorded, because the number looks
 arbitrary and is not. The setting is a window size, not a percentage, and
-claude fires auto-compact at **that value minus 33,000** -- `Bye()` holds back
-`min(maxOutputTokens, 20000)` for output and `SQo()` subtracts a further
-`13000`. So `633000` puts the trigger at 600,000 tokens. That is 60% only
+claude fires auto-compact at **that value minus 33,000**: one function holds
+back `min(maxOutputTokens, 20000)` for output and another subtracts a further
+`13000`. So `633000` puts the trigger at 600,000 tokens.
+
+Re-checked against 2.1.241, because the constants are the load-bearing part and
+the version has moved twice since they were first read. The total is still
+33,000 and the two constants are unchanged; only the minified names are, from
+`Bye` / `SQo` to `Xve` / `cyi`. Today's bundle carries `var fNp=20000`,
+`function cyi(e,t){let r=e-13000`, `var sNp=13000,aNp=3000`, and the
+composition `function vlr(e,t){return cyi(Xve(e,t),z2a(e,t))}`; the default max
+output is `G5b=32000`, so `min(32000, 20000) + 13000` is where 33,000 comes
+from. Names change per build, so re-check by grepping those constants rather
+than the identifiers.
+
+One thing to not misread on the way: the nearby level function subtracts 20,000
+of its own (`a=s-20000`) and that one is the **warn** threshold, not compact.
+Reading it as the trigger gives an answer that is wrong by the 13,000. That is 60% only
 because `model` is `opus[1m]`: the effective window is
 `min(modelMax, autoCompactWindow)`, so on a 200k model the setting would do
 nothing at all. The two keys are coupled, and changing one without the other
