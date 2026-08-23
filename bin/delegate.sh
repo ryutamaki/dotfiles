@@ -52,6 +52,19 @@ max_age_of() {
 # Warn above this. The number is a warning and never a reroute -- see budget().
 QUOTA_WARN=85
 
+# cursor-agent writes whatever `--model` it was launched with back into its own
+# config, so a delegate quietly becomes the default for the next session a human
+# starts by hand. Measured: with the hand-start default set to Extra High, one
+# `bulk` delegate put it back to High. That makes the README step asking for
+# Extra High unkeepable on its own, which is why this script puts the value back.
+#
+# Only startup writes it -- closing the pane does not, also measured -- so
+# snapshotting around `herdr agent start` is enough. The window between snapshot
+# and restore is the one hole: a session a human starts by hand inside it has its
+# choice overwritten. Small, and smaller than the alternative of every delegate
+# silently reconfiguring the chair.
+CURSOR_CONFIG="$HOME/.cursor/cli-config.json"
+
 # Narrowest pane a delegate may be given, in columns. Measured rather than
 # guessed: cursor-agent starts and submits fine at 53 columns, and at roughly 26
 # its TUI comes up but never accepts the prompt -- `agent start` reports ready,
@@ -326,9 +339,18 @@ split_for_delegate() {
         | jq -r '.result.pane.pane_id'
 }
 
-# `<pane_id> <columns>` for the widest pane in this tab.
+# `<pane_id> <columns>` for the widest pane in the caller's own tab.
+#
+# --pane is not optional here, and leaving it off is the mistake this comment
+# exists to prevent. A bare `herdr pane layout` answers for the *focused* tab,
+# which is not the caller's whenever a human has clicked elsewhere -- so the
+# split landed in another workspace, the delegate was invisible to every verb
+# here, and two of them were left sitting in another session's tab. That is the
+# same cross-session reach the closing verbs were scoped out of, reintroduced by
+# a call that enumerates panes without saying whose. CLAUDE.md says every such
+# call needs the scope; this is what ignoring it looks like.
 widest_pane() {
-    herdr pane layout \
+    herdr pane layout --pane "$(own_pane)" \
         | jq -r '.result.layout.panes | max_by(.rect.width) | "\(.pane_id) \(.rect.width)"'
 }
 
@@ -339,6 +361,28 @@ check_room() {
     read -r id width <<<"$(widest_pane)"
     [ -n "${width:-}" ] && [ "$width" != null ] || die 'could not read the pane layout'
     [ $(( width / 2 )) -ge "$MIN_COLS" ] || die "no room in this tab: the widest pane is ${width} columns, a split would leave $(( width / 2 )), and a delegate needs ${MIN_COLS}. Collect and --close one, or widen the window."
+}
+
+# The model keys of cursor's config, as one JSON object, or empty when there is
+# no config to read.
+cursor_model_snapshot() {
+    [ -r "$CURSOR_CONFIG" ] || return 0
+    jq -c '{model, effort}' "$CURSOR_CONFIG" 2>/dev/null || true
+}
+
+# Put those keys back and leave every other key exactly as cursor left it. A
+# restore rather than a configuration: this writes back only what it just read,
+# which is the one shape of write this repo allows into a file a tool owns.
+cursor_model_restore() {
+    local snap="$1" tmp
+    [ -n "$snap" ] && [ -r "$CURSOR_CONFIG" ] || return 0
+    tmp="$CURSOR_CONFIG.delegate.$$"
+    if jq --argjson s "$snap" '.model = $s.model | .effort = $s.effort' \
+        "$CURSOR_CONFIG" > "$tmp" 2>/dev/null && [ -s "$tmp" ]; then
+        mv "$tmp" "$CURSOR_CONFIG"
+    else
+        rm -f "$tmp"
+    fi
 }
 
 # One attempt: split, name, start, submit. Prints the pane id on success.
@@ -357,10 +401,16 @@ try_spawn() {
     [ -n "$pane" ] && [ "$pane" != null ] || die 'could not split a pane'
     herdr pane rename "$pane" "$TAG:$role:$name" >/dev/null
 
+    local snap=''
+    [ "$kind" = cursor ] && snap="$(cursor_model_snapshot)"
+
     if ! start_agent "$name" "$kind" "$pane" "$extra"; then
+        cursor_model_restore "$snap"
         herdr pane close "$pane" >/dev/null 2>&1 || true
         return 1
     fi
+
+    cursor_model_restore "$snap"
 
     # --until working, not the default settled states: the caller delegates in
     # order not to block, so this returns the moment the delegate picks the task
@@ -536,6 +586,17 @@ cmd_answer() {
 # delegate another session in a different workspace was waiting on, and nothing
 # about that is visible to either of them. A delegate is always split from the
 # caller's own pane, so it is always in the caller's own tab.
+# The caller's own pane. `herdr pane current` resolves it from the calling
+# terminal rather than from whatever is focused, which is the only reason any of
+# the scoping below works -- a focused-pane answer would move under the caller
+# whenever a human clicked into another workspace.
+own_pane() {
+    local id
+    id="$(herdr pane current | jq -r '.result.pane.pane_id')"
+    [ -n "$id" ] && [ "$id" != null ] || die 'could not tell which pane this is'
+    printf '%s' "$id"
+}
+
 current_tab() {
     local tab
     tab="$(herdr pane current | jq -r '.result.pane.tab_id')"

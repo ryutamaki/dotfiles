@@ -172,10 +172,18 @@ clear of the status line.
 Either Opus 5 or Grok 4.6 Extra High is started by hand. `claude` is Opus
 -- `claude/settings.base.json` pins `opus[1m]` and `effortLevel: xhigh`.
 `cursor-agent` is Grok -- `~/.cursor/cli-config.json` pins it, and that file is
-machine-local for the same reason the status line is. What it pins today is
-`Cursor Grok 4.6 High` with `effort: null`; README's checklist asks for Extra
-High and that box is still unchecked, so do not read this paragraph as a
-description of the machine. Nothing is chosen at launch, and that session manages rather than does
+machine-local for the same reason the status line is. It pins
+`Cursor Grok 4.6 Extra High`, which is what README's checklist asks for.
+
+Keeping it there took a fix, because **cursor-agent writes whatever `--model` it
+was launched with back into that file on startup**. So every delegate quietly
+became the default for the next session a human starts by hand: with the default
+set to Extra High, one `bulk` delegate put it back to High. Only startup writes
+it -- closing the pane does not -- so `bin/delegate.sh` snapshots the model keys
+around `herdr agent start` and puts them back. That is a restore rather than a
+configuration, which is the one shape of write this repo allows into a file a
+tool owns; the hole it leaves is a session a human starts by hand inside that
+window. Nothing is chosen at launch, and that session manages rather than does
 everything itself. Grok is the chair when the claude plan is empty, or
 when the work wants Grok in it (a review, a long loop). `bin/delegate.sh`
 is how either of them reaches a model that is not already in the chair --
@@ -274,6 +282,15 @@ other's panes. Every closing verb is now scoped to the caller's own tab, which
 is sound rather than a patch: a delegate is split from the caller's pane and
 therefore always in the caller's tab. Anything added to that script that
 enumerates panes needs the same scope, and the label is not a substitute for it.
+
+That rule was then broken by the next thing added, which is why it is worth
+stating twice. `herdr pane layout` with no argument answers for the **focused**
+tab, not the caller's -- so the widest-pane split landed in whichever workspace a
+human had last clicked into, the delegate was invisible to every verb here, and
+two of them were left running in another session's tab. `own_pane` and
+`herdr pane layout --pane` fix it. `herdr pane current` is what makes any of this
+possible: it resolves the caller's pane from the calling terminal rather than
+from focus, which is the one herdr call here that cannot move under you.
 
 Scoping the closing verbs was half a fix, which a review caught. `herdr agent
 <name>` also resolves machine-wide, so `--collect` and `--answer` reached the
@@ -604,7 +621,9 @@ colors now inherit the host terminal palette" (#1752); before it, a pane app
 asking the terminal what its palette is did not necessarily get Ghostty's answer.
 Everything here that asks rather than hardcodes — vim through `t_RB`, git-delta
 through OSC 10/11 — is downstream of that, which is one more reason the upgrade
-note below is not optional maintenance.
+note below is not optional maintenance. Both halves of that were checked rather than assumed: the
+OSC 4 wording is real and did ship in 0.8.0, and the newest stable is 0.8.2, so
+this machine is two patch releases behind and the restart dance below is owed.
 
 The wiring is two independent halves, and a working install needs both:
 
