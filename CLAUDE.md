@@ -236,16 +236,57 @@ actually hold `WebSearch` and `WebFetch`, which is the whole basis of that role.
 Confirm a change to either table this way -- the CLI's own header line, not the
 model's answer, which gets its own name wrong.
 
-`agents/global.md` states five triggers as counts and occasions -- ten files,
-three web pages, an answer not held with confidence, before a design is settled,
-an image in the deliverable -- rather than as "when another model fits". `peer`
+`agents/global.md` states its triggers as the shape of the request -- an
+inventory, a survey, 洗い出し, 調査, an answer that is out on the web, a loop of
+more than a few iterations -- and that is the second attempt. `peer` still
 carries no trigger on purpose: "a subtask worth not waiting for" is a judgement
-call, and one of those sitting in a list arguing that only counts survive would
-undo the list. That is not a style preference. The pull is toward doing the
-work in the session that was asked, because reading a file here always feels
-faster than opening a pane and waiting for one, so a trigger needing a judgement
-call loses to that pull every time and the router goes unused. Countable triggers
-are the only kind that survive their own inconvenience.
+call, and one of those sitting in the list would undo the list. The pull is
+toward doing the work in the session that was asked, because reading a file here
+always feels faster than opening a pane and waiting for one, so a trigger needing
+a judgement call loses to that pull every time and the router goes unused.
+
+**The first attempt stated them as counts -- ten files, three web pages -- and
+the measurement is why they are gone.** Every transcript on disk, 181 sessions:
+seven ever spawned a delegate, and 38 of the 69 spawns were in this repository,
+which is to say while building the thing. The file trigger was crossed by 92
+sessions and fired in 3; the web trigger, 17 and 2. Meanwhile claude sat at 85%
+of its week with Grok at 4.4% of its month.
+
+What a count cannot do is be true at a moment when acting on it is still
+rational. "A survey that will read more than ~10 files" is a forecast at file
+zero and a fact at file ten, and at file ten handing over means discarding the
+work already done. So the trigger is never both true and actionable, and the old
+argument was half right: countable triggers do survive their own inconvenience,
+they just have no moment to be checked in. The shape of the ask has exactly one,
+and it is the only one available -- the request arriving, before the first file is
+open. That is a deliberately weaker predicate, bought for being evaluable while
+nothing is sunk yet.
+
+**`--wait` is the other half of the same measurement, and that half was missing
+rather than wrong.** `delegate <role>` returns as soon as the delegate picks the
+task up, which makes it a throughput device: the chair carries on working, the
+wall clock is unchanged, and the scarce plan is not spared at all. The three
+sessions that delegated most that week -- 13, 5 and 3 times -- are three of the
+five largest claude spenders in it. Fired and forgotten, a delegate adds work
+rather than moving it, so a router obeyed perfectly would still have emptied the
+plan it was written to protect.
+
+There are two reasons to delegate, they want opposite behaviour, and the verb now
+says which one is being bought. `delegate bulk` for parallelism. `delegate --wait
+bulk` when the point is which subscription pays -- spawn, settle, read, close,
+with the chair stopped for the duration. Collapsing the three-verb ceremony
+matters more than it sounds: what the plain form actually loses to is not the
+count in the trigger but the built-in subagent call, which is one tool call and
+was reached for 148 times over the same sessions against delegate's 69.
+
+Two details in that verb are not free choices. `herdr agent wait` without
+`--timeout` waits indefinitely, so the one verb that blocks its caller needs a
+ceiling or a wedged delegate takes the chair down with it -- `WAIT_MS` is fifteen
+minutes, above every bulk survey measured here and below "the human has gone
+home". And it closes the pane only on `idle` or `done`: a `blocked` delegate is
+waiting on a keypress and an expired wait may be one still working, so closing
+either would throw the work away along with the question. Those two keep their
+pane and the message names the verb to use.
 
 Every delegate is a `herdr agent`, never a background process. That is the rule
 in `agents/global.md` about dev servers, applied to agents: the sidebar carries
@@ -396,6 +437,14 @@ that is when the exit check becomes writable -- if it still is not, the
 rewrites means the opposite: not discovery but a wrong direction, and it goes to
 a human. So "cannot write a termination check" stops being a defect and becomes
 a measurement.
+
+Which plan pays is a field of its own now, beside the budget and exempt for the
+same reason. A loop re-reads its ledger and rebuilds its context every iteration,
+so it empties the chair's plan faster than anything else here, and which chair it
+is in is knowable before the first iteration even when the goal is `不明`. Above
+a few dozen iterations the answer is to start the loop in a Grok chair, not to
+route out of a claude one; `delegate --wait bulk` per iteration is the fallback
+for a loop already running in the wrong one.
 
 The ledger is the state, which is why the skill says to put its path in the
 `/loop` prompt rather than relying on the protocol staying in context. Read back

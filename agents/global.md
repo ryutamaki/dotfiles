@@ -19,32 +19,39 @@ submits the task. Choose a **role**, never a model string:
     image  images (same destination as gpt)
 
 ```sh
-delegate bulk <name> "<task>"    # returns as soon as it picks the task up
-delegate --collect <name>        # wait for it to settle, print the tail
+delegate --wait bulk <name> "<task>"   # hand over, wait, close -- the one form
+                                       # that spends the other plan
+delegate bulk <name> "<task>"          # returns at once: parallelism, not budget
+delegate --collect <name>              # settle and read one of those later
 ```
 
 `delegate --help` has the rest -- `--status`, `--answer`, `--close`,
 `--close-all`.
 
-Do this without being asked when one of these is true:
+**Decide at the moment the request arrives, before the first file is opened.**
+That is the only point where nothing is sunk yet: ten files in, handing over
+means discarding work already done, so a count taken mid-task never fires.
 
-    a survey that will read more than ~10 files   ->  bulk
-    research spanning more than ~3 web pages      ->  web
-    an answer you are not confident in            ->  hard
-    before settling a design decision, once       ->  gpt, told to disagree
-    an image is part of what is being delivered   ->  image
+    the ask is an inventory, a survey, 洗い出し, 調査, どうなっているか   ->  bulk
+    the answer is out on the web rather than in this repo                 ->  web
+    a loop of more than a few iterations                                  ->  a Grok chair, not this one
+    an answer you are not confident in                                    ->  hard
+    before settling a design decision, once                               ->  gpt, told to disagree
+    an image is part of what is being delivered                           ->  image
 
-Counts and occasions rather than a judgement, because reading a file here always
-feels faster than opening a pane and waiting for one, so a softer rule loses
-every time. Otherwise work here: implementing, editing, refactoring, a survey of
-a few files, and talking to the human.
+The shape of the ask rather than a judgement about it, because reading a file
+here always feels faster than opening a pane and waiting for one, so a rule
+needing a judgement loses every time. Otherwise work here: implementing,
+editing, refactoring, a few files, and talking to the human.
 
-Grok is the plentiful plan and the other two are not. When this session is
-already Grok, `bulk` / `web` / `deep` / `peer` are this session -- do not open
-another Grok for them. Only when `HERDR_ENV=1`.
+Grok is the plentiful plan and the other two are not, and `--wait` is what
+actually spends it -- fired and forgotten, a delegate adds work rather than
+moving it. When this session is already Grok, `bulk` / `web` / `deep` / `peer`
+are this session -- do not open another Grok for them. Only when `HERDR_ENV=1`.
 
-Every delegate is a pane, so the sidebar shows its state. Close what you opened;
-the rule below about leaving a human's pane alone applies to these too.
+Every delegate is a pane, so the sidebar shows its state. `--wait` closes its
+own; close whatever you leave running, and the rule below about a human's pane
+applies to these too.
 
 ## Long-running processes go in a herdr pane
 

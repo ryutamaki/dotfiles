@@ -4,6 +4,7 @@
 #
 # usage:
 #   delegate <role> <name> <task...>    split a pane, start the agent, submit it
+#   delegate --wait <role> <name> ...   the same, then wait, print it, close it
 #   delegate --list                     the routing table
 #   delegate --status                   live delegates, and what each plan has left
 #   delegate --collect <name> [ms]      wait for it to settle, then print the tail
@@ -72,6 +73,17 @@ CURSOR_CONFIG="$HOME/.cursor/cli-config.json"
 # like the load-related stall and is not it, which is what makes the floor worth
 # enforcing rather than discovering three failed spawns later.
 MIN_COLS=50
+
+# How long a --wait handoff sits there before it gives up. `herdr agent wait`
+# without --timeout waits forever, and forever is the wrong answer for the one
+# verb that blocks its caller: a wedged delegate would take the chair down with
+# it. Fifteen minutes is above every bulk survey measured here and below "the
+# human has gone home". A delegate that stops to ask something settles the wait
+# on its own -- blocked is one of the states it matches -- so this bounds only
+# the case where nothing is coming back at all. Overridable for one call, the
+# same way --collect takes a timeout, so a handoff can be capped without
+# editing this: WAIT_MS=60000 delegate --wait bulk ...
+WAIT_MS="${WAIT_MS:-900000}"
 
 # Every pane this script opens is labelled with this prefix, and that label is
 # the whole registry. There is no state file: `herdr pane list` is the ledger,
@@ -435,11 +447,16 @@ try_spawn() {
 }
 
 cmd_spawn() {
-    # ${2:-} rather than $2: set -u would turn `delegate bulk` into an unbound
-    # variable trace instead of the message two lines down.
-    local role="$1" name="${2:-}"
+    # ${1:-} and ${2:-} rather than $1 and $2: set -u would turn `delegate bulk`,
+    # or a bare `delegate --wait`, into an unbound variable trace instead of the
+    # messages below. The role is checked before resolve() sees it, because
+    # resolve of an empty string reports an unknown role rather than a missing
+    # one, and those are different mistakes.
+    local role="${1:-}" name="${2:-}"
     shift $(( $# > 2 ? 2 : $# ))
     local task="$*"
+
+    [ -n "$role" ] || die 'which role? try --list'
 
     local spec kind extra
     spec="$(resolve "$role")" || die "unknown role '$role'; try --list"
@@ -496,6 +513,16 @@ cmd_spawn() {
     return 1
 }
 
+# What one pane's agent is doing now, never empty. jq prints the literal `null`
+# for a missing field and every caller of this compares it against a state name,
+# so an unreadable answer has to arrive as a word rather than as nothing.
+state_of() {
+    local s
+    s="$(herdr agent get "$1" | jq -r '.result.agent.agent_status')"
+    [ -n "$s" ] && [ "$s" != null ] || s='unknown'
+    printf '%s' "$s"
+}
+
 cmd_collect() {
     local name="${1:-}" timeout="${2:-}"
     [ -n "$name" ] || die 'which delegate?'
@@ -517,15 +544,68 @@ cmd_collect() {
         herdr agent wait "$pane" >/dev/null
     fi
 
-    local state
-    state="$(herdr agent get "$pane" | jq -r '.result.agent.agent_status')"
-    [ -n "$state" ] && [ "$state" != null ] || state='unknown'
-    printf '=== %s: %s ===\n' "$name" "$state"
+    printf '=== %s: %s ===\n' "$name" "$(state_of "$pane")"
 
     # --source visible rather than recent: the scrollback sources return an
     # empty string until output has actually scrolled off, which is the trap
     # agents/global.md records for panes and is no different here.
     herdr agent read "$pane" --source visible --lines 120
+}
+
+# Hand it over and wait: spawn, settle, read, close, in one call.
+#
+# The plain form above is a throughput device. It returns the moment the delegate
+# picks the task up, so the chair carries on working and the wall clock is
+# unchanged -- which is also why it moves no budget. Measured across a week of
+# transcripts: the three sessions that delegated most, 13 and 5 and 3 times, are
+# three of the five largest claude spenders of that week. Fired and forgotten, a
+# delegate adds work rather than moving it.
+#
+# So this verb is for the other reason to delegate: which plan pays. The chair
+# stops, and the tokens are spent on the destination's subscription instead of
+# its own. A choice per call rather than a replacement -- `bulk` when the point
+# is parallelism, `--wait bulk` when the point is the plan.
+#
+# It also collapses the three-verb ceremony (spawn, --collect, --close) that made
+# the plain form expensive to reach for, and closing on the way out is what keeps
+# check_room from refusing the third handoff of a session.
+cmd_handoff() {
+    local name="${2:-}"
+
+    # Everything about starting it -- the role table, the room check, the budget
+    # warning, the three retries -- is cmd_spawn's. Called plainly rather than
+    # through a command substitution: `die` inside one exits only the subshell,
+    # which is how check_room's refusal once came back as an ordinary failure and
+    # was retried three times.
+    cmd_spawn "$@"
+
+    local pane
+    pane="$(pane_of "$name")"
+    [ -n "$pane" ] || die "started '$name' but cannot find its pane in this tab"
+
+    # A timeout here is tolerated rather than fatal. `herdr agent wait` fails when
+    # it expires and under set -e that would exit before printing anything, but
+    # the tail of a delegate that has been running for fifteen minutes is exactly
+    # what the caller needs to see, finished or not.
+    herdr agent wait "$pane" --timeout "$WAIT_MS" >/dev/null 2>&1 || true
+
+    local state
+    state="$(state_of "$pane")"
+    printf '=== %s: %s ===\n' "$name" "$state"
+    # --source visible, for the reason cmd_collect gives.
+    herdr agent read "$pane" --source visible --lines 120
+
+    # Closed only when it stopped on its own. `blocked` is a delegate waiting on
+    # a keypress, and a timeout may be one that is still working; closing either
+    # throws the work away along with the question. So the pane stays, --answer is
+    # still the keypress, and the caller is told which of the two it was.
+    case "$state" in
+        idle|done)
+            herdr pane close "$pane" >/dev/null 2>&1 || true ;;
+        *)
+            printf 'delegate: %s is %s -- its pane is still open; --answer or --close it.\n' \
+                "$name" "$state" >&2 ;;
+    esac
 }
 
 # A leftover blocked delegate is waiting on a keypress -- hook trust, a
@@ -676,6 +756,7 @@ usage() {
 case "${1:-}" in
     --list)      cmd_list ;;
     --status)    cmd_status ;;
+    --wait)      shift; cmd_handoff "$@" ;;
     --collect)   shift; cmd_collect "$@" ;;
     --collect-all) cmd_collect_all ;;
     --answer)    shift; cmd_answer "$@" ;;
