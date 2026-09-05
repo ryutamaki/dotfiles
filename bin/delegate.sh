@@ -320,9 +320,7 @@ cmd_status() {
     # naming them is the most this can do without reintroducing the reach. A
     # human closes those in the sidebar.
     local strays
-    strays="$(herdr pane list | jq -r --arg t "$TAG:" --arg tab "$(current_tab)" \
-        '.result.panes[] | select(.tab_id != $tab and ((.label // "") | startswith($t)))
-         | "  \(.label)\t\(.tab_id)\t\(.agent_status)"')"
+    strays="$(stray_panes)"
     if [ -n "$strays" ]; then
         printf '\nnot this tab, so not closeable from here:\n%s\n' "$strays"
     fi
@@ -374,10 +372,14 @@ start_agent() {
 # says at a glance which pane a human is meant to be typing in.
 #
 # Opening beats the layout wherever the two conflict, which is the order asked
-# for. A caller too narrow to split sideways is split downward instead, and a
-# column with no vertical room left falls back to widening itself; only when
-# neither axis fits on any pane does this come back empty, and check_room turns
-# that into the refusal.
+# for, so the ladder is written as candidates in priority order and the first
+# one that fits wins. The delegate column is tried first, downward and then
+# sideways, because that is the arrangement worth keeping; the caller is tried
+# last rather than not at all. Dropping it from the pool once a delegate existed
+# was the bug a review caught: a full column would refuse while the caller sat
+# there splittable on both axes, which inverts the priority this was written to
+# honour. It costs the caller its full height only in the case where the
+# alternative is refusing, which is the order that was asked for.
 next_split() {
     local own layout ids
     own="$(own_pane)"
@@ -386,20 +388,18 @@ next_split() {
 
     printf '%s' "$layout" | jq -r --arg own "$own" --argjson ids "$ids" \
         --argjson mincols "$MIN_COLS" --argjson minrows "$MIN_ROWS" '
+        def fits_right: (.rect.width  / 2) >= $mincols;
+        def fits_down:  (.rect.height / 2) >= $minrows;
         .result.layout.panes as $panes
         | ($panes | map(select(.pane_id as $i | $ids | index($i)))) as $dlg
-        | (if ($dlg | length) == 0
-           then [$panes[] | select(.pane_id == $own)]
-           else $dlg end) as $pool
-        | ($pool | max_by(.rect.height)) as $tall
-        | ($pool | max_by(.rect.width))  as $wide
-        | if ($dlg | length) == 0 and (($wide.rect.width / 2) >= $mincols)
-          then "\($wide.pane_id) right"
-          elif ($tall.rect.height / 2) >= $minrows
-          then "\($tall.pane_id) down"
-          elif ($wide.rect.width / 2) >= $mincols
-          then "\($wide.pane_id) right"
-          else "" end'
+        | ($panes | map(select(.pane_id == $own)))                  as $caller
+        | [ (if ($dlg | length) > 0
+             then ($dlg | max_by(.rect.height) | select(fits_down)  | "\(.pane_id) down"),
+                  ($dlg | max_by(.rect.width)  | select(fits_right) | "\(.pane_id) right")
+             else empty end),
+            ($caller[] | select(fits_right) | "\(.pane_id) right"),
+            ($caller[] | select(fits_down)  | "\(.pane_id) down") ]
+        | .[0] // ""'
 }
 
 # The refusal for a tab with no room left lives in check_room, called once by
@@ -432,7 +432,7 @@ check_room() {
     read -r w h <<<"$(herdr pane layout --pane "$own" | jq -r --arg p "$own" \
         '.result.layout.panes[] | select(.pane_id == $p) | "\(.rect.width) \(.rect.height)"')"
     n="$(delegate_panes | grep -c . || true)"
-    die "no room in this tab: ${n} delegate pane(s) open already and nothing left to split -- a delegate needs ${MIN_COLS} columns or ${MIN_ROWS} rows, and this pane is ${w}x${h}. --collect one, which closes it, or widen the window."
+    die "no room in this tab: ${n} delegate pane(s) open and nothing left to split -- a delegate needs ${MIN_COLS} columns or ${MIN_ROWS} rows left behind, and even this pane, which is tried last, is only ${w}x${h}. --collect one, which closes it, or widen the window."
 }
 
 # The model keys of cursor's config, as one JSON object, or empty when there is
@@ -595,17 +595,6 @@ state_of() {
     printf '%s' "$s"
 }
 
-# Print what a delegate has to show, then end it. That is the whole of what a
-# caller ever does with one, which is why it is one function rather than a verb
-# to read and a second verb to close: the panes leaked because those were two
-# verbs, and whichever one the chair reached for, the other was a median of 19
-# tool calls away.
-#
-# Closed only when it stopped on its own. `blocked` is a delegate waiting on a
-# keypress; `unknown` is herdr saying it cannot classify the pane, which its own
-# skill is explicit does not prove completion; an expired wait may be one still
-# working. Closing any of those throws the work away along with the question, so
-# those keep their pane and the caller is told which it was.
 # Read the pane both ways and keep whichever carries more.
 #
 # `visible` alone was right while a delegate got half the window. Stacked into a
@@ -630,6 +619,17 @@ read_agent() {
     fi
 }
 
+# Print what a delegate has to show, then end it. That is the whole of what a
+# caller ever does with one, which is why it is one function rather than a verb
+# to read and a second verb to close: the panes leaked because those were two
+# verbs, and whichever one the chair reached for, the other was a median of 19
+# tool calls away.
+#
+# Closed only when it stopped on its own. `blocked` is a delegate waiting on a
+# keypress; `unknown` is herdr saying it cannot classify the pane, which its own
+# skill is explicit does not prove completion; an expired wait may be one still
+# working. Closing any of those throws the work away along with the question, so
+# those keep their pane and the caller is told which it was.
 report_and_release() {
     local name="$1" pane="$2" state
     state="$(state_of "$pane")"
@@ -659,10 +659,17 @@ cmd_collect() {
     # No --until: idle, done and blocked all mean "stopped, go look". Waiting
     # only for done would hang forever on a permission prompt. Spelled out both
     # ways rather than ${timeout:+...}, which word-splits into one argument.
+    #
+    # Tolerated rather than fatal, for the reason the handoff gives: `herdr agent
+    # wait` fails when it expires, and under set -e that exits before anything is
+    # printed or closed. This verb is the documented way back to a handoff the
+    # caller's harness killed, so the one path that recovery leans on was the one
+    # still unguarded -- a --collect with a timeout would come back silent, and
+    # leave the pane it was called to close.
     if [ -n "$timeout" ]; then
-        herdr agent wait "$pane" --timeout "$timeout" >/dev/null
+        herdr agent wait "$pane" --timeout "$timeout" >/dev/null 2>&1 || true
     else
-        herdr agent wait "$pane" >/dev/null
+        herdr agent wait "$pane" >/dev/null 2>&1 || true
     fi
 
     report_and_release "$name" "$pane"
@@ -803,15 +810,40 @@ current_tab() {
     printf '%s' "$tab"
 }
 
-# The delegate panes in the caller's tab, as `pane_id label` lines. Every verb
-# that enumerates panes goes through here: the tab scope is the thing the note
-# above says must not be forgotten, and three copies of the filter is how it
-# gets forgotten in the fourth place.
+# Every delegate pane on the machine, as `label<TAB>pane_id<TAB>status<TAB>tab`.
+#
+# The label filter is written here and nowhere else. That is the rule the note
+# above states and the fourth place is exactly where it got forgotten: --status
+# needs this same set cut the other way, and wrote its own copy of the filter to
+# get it. So the filter is one function and the two cuts below are the verbs.
+tagged_panes() {
+    herdr pane list | jq -r --arg t "$TAG:" \
+        '.result.panes[] | select((.label // "") | startswith($t))
+         | "\(.label)\t\(.pane_id)\t\(.agent_status)\t\(.tab_id)"'
+}
+
+# The delegate panes in the caller's tab. The tab scope is the thing the note
+# above says must not be forgotten.
+#
+# `tab` is assigned on its own line rather than inlined as `--arg tab
+# "$(current_tab)"`, and that is not a style choice. `die` inside a command
+# substitution exits only the subshell, so an inlined failure hands jq an empty
+# string -- which this comparison would turn into "matches nothing", and the
+# `!=` one below would turn into "matches every pane on the machine". A bare
+# assignment gives set -e the exit status to act on, so current_tab's own
+# refusal to guess reaches the caller the way it was written to.
 delegate_panes() {
-    herdr pane list | jq -r --arg t "$TAG:" --arg tab "$(current_tab)" \
-        '.result.panes[] | select(.tab_id == $tab
-         and ((.label // "") | startswith($t)))
-         | "\(.label)\t\(.pane_id)\t\(.agent_status)"'
+    local tab
+    tab="$(current_tab)"
+    tagged_panes | awk -F'\t' -v t="$tab" '$4 == t { print $1 "\t" $2 "\t" $3 }'
+}
+
+# The same set cut the other way: delegates in somebody else's tab, indented and
+# labelled by tab because --status names them without ever touching them.
+stray_panes() {
+    local tab
+    tab="$(current_tab)"
+    tagged_panes | awk -F'\t' -v t="$tab" '$4 != t { print "  " $1 "\t" $4 "\t" $3 }'
 }
 
 # The pane of one named delegate in this tab, or empty. This is also what keeps

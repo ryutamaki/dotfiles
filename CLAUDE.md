@@ -366,11 +366,17 @@ the window's full height from the first split on is the point rather than a side
 effect: one full-height pane beside a stack of short ones says at a glance which
 pane a human is meant to be typing in.
 
-Opening beats the layout wherever the two conflict, and the fallbacks are in
-that order. A caller too narrow to split sideways is split downward instead; a
-column with no vertical room left widens itself, which still never touches the
-caller; only when neither axis fits on any pane does `check_room` refuse, and it
-names the count and the geometry rather than one number.
+Opening beats the layout wherever the two conflict, and the ladder is written as
+candidates in priority order so that stays true. The delegate column is tried
+first, downward and then sideways, because that is the arrangement worth
+keeping; the caller is tried **last rather than not at all**, and it is the
+half a review caught. Dropping the caller from the pool the moment a delegate
+existed meant a full column refused while the caller sat there splittable on
+both axes -- layout beating opening, which is the inversion this was written to
+prevent. So the caller can lose its full height, but only where the alternative
+is refusing to open at all. Only when no candidate fits does `check_room`
+refuse, and its message names the caller as the pane tried last so the numbers
+it prints are the ones that actually decided.
 
 `MIN_ROWS` is 10, measured the way `MIN_COLS` was rather than guessed: a 10-row
 pane starts cursor-agent and takes a prompt, and at 5 rows `herdr agent start`
@@ -419,6 +425,16 @@ other's panes. Every closing verb is now scoped to the caller's own tab, which
 is sound rather than a patch: a delegate is split from the caller's pane and
 therefore always in the caller's tab. Anything added to that script that
 enumerates panes needs the same scope, and the label is not a substitute for it.
+
+The filter that finds those panes is one function for the same reason the scope
+is one rule, and it took a fourth copy to make the point: `--status` needs the
+same set cut the other way -- delegates *not* in this tab -- and wrote its own
+copy of the label filter to get it. Worse than a duplicate, the inverted
+comparison failed open rather than closed: `current_tab` inlined in a command
+substitution cannot stop its caller when it dies, so an empty tab id turned
+`!= $tab` into "every pane on the machine". `tagged_panes` now holds the filter,
+`delegate_panes` and `stray_panes` are the two cuts, and both bind the tab id in
+a bare assignment where set -e can see it fail.
 
 That rule was then broken by the next thing added, which is why it is worth
 stating twice. `herdr pane layout` with no argument answers for the **focused**
