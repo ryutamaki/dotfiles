@@ -1,6 +1,10 @@
 ---
 name: cleanup
 description: Post-merge housekeeping. Switches to the main integration branch, fast-forwards it, deletes the just-merged feature branch, and optionally tidies non-locked worktrees. Use when the user says "develop にマージしました", "merged", "後片付け", or invokes /cleanup.
+# ブランチと worktree を消すので、起動は /cleanup と打ったときだけにする。
+# description の起動語(「merged」「後片付け」)は普通の会話に出るので、モデルに任せると
+# 報告のつもりで喋った一言でブランチが消える(2026-09-01)。
+disable-model-invocation: true
 ---
 
 # /cleanup — マージ後の後片付け
