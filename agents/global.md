@@ -19,11 +19,14 @@ submits the task. Choose a **role**, never a model string:
     image  images (same destination as gpt)
 
 ```sh
-delegate --wait bulk <name> "<task>"   # hand over, wait, close -- the one form
-                                       # that spends the other plan
-delegate bulk <name> "<task>"          # returns at once: parallelism, not budget
-delegate --collect <name>              # settle and read one of those later
+delegate bulk <name> "<task>"          # hand over, wait, read, close: one call
+delegate --async bulk <name> "<task>"  # returns at once: fan-out, not budget
+delegate --collect <name>              # settle, read and close one of those
 ```
+
+The default blocks, so give the tool call that runs it a 600000ms timeout. If
+it is killed anyway the delegate is still working -- `--collect <name>` picks it
+back up.
 
 `delegate --help` has the rest -- `--status`, `--answer`, `--close`,
 `--close-all`.
@@ -44,14 +47,15 @@ here always feels faster than opening a pane and waiting for one, so a rule
 needing a judgement loses every time. Otherwise work here: implementing,
 editing, refactoring, a few files, and talking to the human.
 
-Grok is the plentiful plan and the other two are not, and `--wait` is what
+Grok is the plentiful plan and the other two are not, and waiting is what
 actually spends it -- fired and forgotten, a delegate adds work rather than
 moving it. When this session is already Grok, `bulk` / `web` / `deep` / `peer`
 are this session -- do not open another Grok for them. Only when `HERDR_ENV=1`.
 
-Every delegate is a pane, so the sidebar shows its state. `--wait` closes its
-own; close whatever you leave running, and the rule below about a human's pane
-applies to these too.
+Every delegate is a pane, so the sidebar shows its state. Reading one ends it:
+the default form and `--collect` both close the pane when the delegate stopped
+on its own. `--async` is the only form that leaves one standing, so collect or
+close whatever is fired that way before the session ends.
 
 ## Long-running processes go in a herdr pane
 

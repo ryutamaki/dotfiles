@@ -272,9 +272,9 @@ rather than moving it, so a router obeyed perfectly would still have emptied the
 plan it was written to protect.
 
 There are two reasons to delegate, they want opposite behaviour, and the verb now
-says which one is being bought. `delegate bulk` for parallelism. `delegate --wait
-bulk` when the point is which subscription pays -- spawn, settle, read, close,
-with the chair stopped for the duration. Collapsing the three-verb ceremony
+says which one is being bought. `delegate --async bulk` for parallelism.
+`delegate bulk` when the point is which subscription pays -- spawn, settle, read,
+close, with the chair stopped for the duration. Collapsing the three-verb ceremony
 matters more than it sounds: what the plain form actually loses to is not the
 count in the trigger but the built-in subagent call, which is one tool call and
 was reached for 148 times over the same sessions against delegate's 69.
@@ -287,6 +287,102 @@ home". And it closes the pane only on `idle` or `done`: a `blocked` delegate is
 waiting on a keypress and an expired wait may be one still working, so closing
 either would throw the work away along with the question. Those two keep their
 pane and the message names the verb to use.
+
+The routing rewrite above did work, and that is why what follows is about
+ceremony rather than about triggers: Claude sessions using delegate went from 7
+of 132 before 2026-08-24 to 32 of 77 after, 5% to 42%. What remained was not a
+reluctance to decide.
+
+**Which of the two forms is the default was then measured again, and inverted.**
+`--wait` was the flag and fire-and-forget was the default, on the argument in the
+paragraph above -- which is right about the verb having to say which reason is
+being bought, and was wrong about which way round to say it. Across all 403
+transcripts, 852 `delegate` calls produced 158 delegates: 5.4 tool calls each,
+against roughly one for the built-in subagent that same paragraph already named
+as the real competitor. 288 of those 852 are `--status`. Fired and forgotten, a
+delegate turns its caller into a poller, which is the budget finding restated in
+wall-clock terms rather than in tokens.
+
+So the blocking form is what a bare `delegate <role> <name> <task>` does now and
+`--async` is the flag. `--wait` stays as a one-line alias rather than an error:
+the string is in old transcripts and in a human's fingers, and it now asks for
+what happens anyway.
+
+**The leak is that same arithmetic from the other end.** 20 of the 158 were never
+closed by the session that opened them, and the distance is why -- a median of 19
+tool calls, a mean of 29 and a maximum of 217 separate a spawn from its
+`--close`. A close that far from its spawn depends on the chair still remembering
+across a stretch that routinely spans a compaction, which is the same shape as a
+routing trigger with no moment it can be checked in, and it fails the same way.
+So reading a delegate ends it: `report_and_release` is shared by the default form
+and by `--collect`, and both close the pane on `idle` or `done`. `--async` is the
+only form that leaves one standing, which is the case where that is deliberate.
+
+`unknown` sits in the same arm as `blocked` there rather than with `idle`, and
+herdr's own skill is the reason: it means herdr cannot classify the pane and
+"does not prove completion".
+
+What none of that reaches is a delegate whose tab has moved on. Every closing
+verb is scoped to the caller's tab, deliberately, and the price of that scope is
+a leak nothing can close and nothing can see -- two were sitting `idle` in other
+workspaces when this was written. So `--status` names them without touching them,
+and closing those is a human in the sidebar.
+
+The caller's own harness is the other ceiling, and it is lower than any ceiling
+in the script. Claude Code's Bash tool stops a command at 120s by default and
+refuses to be given more than 600s, while `WAIT_MS` is fifteen minutes -- and a
+killed script runs none of its cleanup, so an overrun orphans the pane and hands
+the chair nothing but "command timed out". Measured, that has not bitten yet: all
+24 `--wait` calls on disk returned, 20 of them with an explicit 600000ms tool
+timeout. Making the form the default is what puts it in reach, so the recovery is
+a printf placed *before* the wait rather than after it -- output written before a
+kill still reaches the caller -- and it names `--collect <name>`.
+
+**Launching fails often enough to be its own reason not to reach for it, and
+that half is not this script's to fix.** Of roughly 216 spawns on disk, 69 hit
+the first retry, 15 the second and 22 gave up after all three: one launch in ten
+never starts. `protocol_mismatch` appears in 9 sessions, which takes the whole
+agent-facing surface down rather than one spawn. The retry ladder is already
+tuned for the load-related stall it can see, so the remaining lever is herdr's
+version -- 0.8.0 is installed, 0.8.2 is out, and 0.8.0's own notes name "`agent
+start` now waits for new pane shells and first-run agent prompts to become ready
+instead of racing them or reporting premature readiness". That upgrade is the
+restart dance further down and costs every pane's scrollback, so it is its own
+piece of work rather than a side effect of touching this script.
+
+**The window was the other refusal, and it was arguing about one axis while the
+window has two.** Every delegate took the widest pane in the tab and always took
+it sideways, so 295 columns halved to 147 and then to 73 and the second delegate
+was refused -- `no room in this tab` fired 13 times across 7 sessions. Widest-
+first was itself a fix for `--current` making the caller pay for every delegate
+it opened, and it inherited the sideways assumption from the version it
+replaced.
+
+So the caller's pane is now split once, to the right, and every delegate after
+that stacks downward inside that column, tallest first for the reason widest-
+first existed -- it spreads the cost rather than quartering the newest arrival.
+An 84-row column reaches eight delegates before it refuses. The caller keeping
+the window's full height from the first split on is the point rather than a side
+effect: one full-height pane beside a stack of short ones says at a glance which
+pane a human is meant to be typing in.
+
+Opening beats the layout wherever the two conflict, and the fallbacks are in
+that order. A caller too narrow to split sideways is split downward instead; a
+column with no vertical room left widens itself, which still never touches the
+caller; only when neither axis fits on any pane does `check_room` refuse, and it
+names the count and the geometry rather than one number.
+
+`MIN_ROWS` is 10, measured the way `MIN_COLS` was rather than guessed: a 10-row
+pane starts cursor-agent and takes a prompt, and at 5 rows `herdr agent start`
+fails outright instead of stalling -- a louder failure than the width one, which
+at 26 columns came up and silently never accepted the prompt. 10 is the
+known-good number, not an extrapolation toward the cliff between them.
+
+Two of the launch refusals are downstream of the leak rather than independent of
+it, which is why the messages for both now name the fix. `is already live` fired
+12 times across 9 sessions, and a delegate nobody closed is the usual reason the
+name is taken -- so when the name resolves to a pane in this tab the message
+says to `--collect` it, and only otherwise says to pick another name.
 
 Every delegate is a `herdr agent`, never a background process. That is the rule
 in `agents/global.md` about dev servers, applied to agents: the sidebar carries
@@ -742,6 +838,17 @@ measurement behind it: `python3 -m http.server` in an 84-row pane read empty at
 six lines of output and correct for both scrollback sources after a hundred.
 That is why `visible` is the starting point and `recent-unwrapped` is worth
 reaching for only once the output has actually scrolled.
+
+Stacking delegates made the other half of that ordinary, so `delegate` reads both
+and keeps the longer answer. `visible` is one screenful, and a delegate in a
+ten-row pane has its answer cut to ten lines while looking as though it said
+almost nothing. The scrollback has the whole turn there — checked rather than
+assumed, since a TUI holding the alternate screen would have none:
+`recent-unwrapped` on a 10-row cursor-agent pane came back with the prompt, the
+answer and the banner above it. Neither source is right alone, and which one is
+wrong now depends on a pane height that is no longer fixed, so `read_agent` takes
+the longer of the two. That extends the rule above rather than reversing it —
+`visible` is still the floor.
 
 `herdr pane wait-output --match` is the reliable readiness signal and does not
 share the problem, because it searches the snapshot immediately and matches

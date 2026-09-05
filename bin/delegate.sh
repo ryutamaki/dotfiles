@@ -3,12 +3,12 @@
 # Hand a task to the model that fits it, in a herdr pane beside the caller.
 #
 # usage:
-#   delegate <role> <name> <task...>    split a pane, start the agent, submit it
-#   delegate --wait <role> <name> ...   the same, then wait, print it, close it
+#   delegate <role> <name> <task...>    hand it over, wait, print it, close it
+#   delegate --async <role> <name> ...  the same, but returns at once -- fan-out
+#   delegate --collect <name> [ms]      settle one of those, print it, close it
+#   delegate --collect-all              the same for every delegate in this tab
 #   delegate --list                     the routing table
 #   delegate --status                   live delegates, and what each plan has left
-#   delegate --collect <name> [ms]      wait for it to settle, then print the tail
-#   delegate --collect-all              the same for every delegate in this tab
 #   delegate --answer <name> <keys>     answer a `blocked` delegate's prompt
 #   delegate --close <name>
 #   delegate --close-all
@@ -74,7 +74,18 @@ CURSOR_CONFIG="$HOME/.cursor/cli-config.json"
 # enforcing rather than discovering three failed spawns later.
 MIN_COLS=50
 
-# How long a --wait handoff sits there before it gives up. `herdr agent wait`
+# And the shortest, in rows, because delegates stack downward now. Measured the
+# same way MIN_COLS was: a 10-row pane starts cursor-agent and takes a prompt,
+# and at 5 rows `herdr agent start` fails outright rather than stalling -- a
+# different failure from the width one, and a louder one. 10 is the known-good
+# number rather than an extrapolation toward the cliff between them.
+#
+# It bounds the pane a split *leaves*, so a stack needs 20 rows to grow. An
+# 84-row column reaches eight delegates before it refuses, which is well past
+# anything a tab here has held.
+MIN_ROWS=10
+
+# How long a handoff sits there before it gives up. `herdr agent wait`
 # without --timeout waits forever, and forever is the wrong answer for the one
 # verb that blocks its caller: a wedged delegate would take the chair down with
 # it. Fifteen minutes is above every bulk survey measured here and below "the
@@ -82,7 +93,7 @@ MIN_COLS=50
 # on its own -- blocked is one of the states it matches -- so this bounds only
 # the case where nothing is coming back at all. Overridable for one call, the
 # same way --collect takes a timeout, so a handoff can be capped without
-# editing this: WAIT_MS=60000 delegate --wait bulk ...
+# editing this: WAIT_MS=60000 delegate bulk ...
 WAIT_MS="${WAIT_MS:-900000}"
 
 # Every pane this script opens is labelled with this prefix, and that label is
@@ -300,6 +311,21 @@ cmd_status() {
     else
         printf '%s\n' "$live" | column -t -s "$(printf '\t')"
     fi
+
+    # Delegate panes in somebody else's tab, named but never touched. Every
+    # closing verb here is scoped to the caller's own tab on purpose -- an
+    # unscoped --close-all once took down a delegate another session was waiting
+    # on. What that scope costs is a leak nothing can reach once the tab that
+    # opened it has moved on, and which is invisible from every other tab, so
+    # naming them is the most this can do without reintroducing the reach. A
+    # human closes those in the sidebar.
+    local strays
+    strays="$(herdr pane list | jq -r --arg t "$TAG:" --arg tab "$(current_tab)" \
+        '.result.panes[] | select(.tab_id != $tab and ((.label // "") | startswith($t)))
+         | "  \(.label)\t\(.tab_id)\t\(.agent_status)"')"
+    if [ -n "$strays" ]; then
+        printf '\nnot this tab, so not closeable from here:\n%s\n' "$strays"
+    fi
 }
 
 # `herdr agent start` requires the pane to be at its interactive shell prompt
@@ -329,50 +355,84 @@ start_agent() {
     done
 }
 
-# Split the widest pane in this tab, not the caller's own.
+# `<pane_id> <direction>` for where the next delegate's pane comes from, or
+# empty when nothing in this tab can be split.
 #
-# `--current` halved the caller's pane every time, so a third delegate arrived at
-# a quarter width and a fourth could not start at all -- and the caller, whose
-# pane is the one a human is reading, paid for every delegate it opened. Widest-
-# first spreads the cost and keeps the fan-out that --collect-all exists to serve
-# from strangling itself.
+# The caller's pane is split once and never again. Before this, every delegate
+# took the widest pane in the tab and always took it sideways: 295 columns
+# halves to 147 and again to 73, so the second delegate was refused and `no room
+# in this tab` fired 13 times across 7 sessions. Widest-first was itself a fix --
+# `--current` had made the caller pay for every delegate it opened -- but both
+# versions were arguing about which pane to cut in half along one axis, when the
+# window has two.
 #
+# So the first delegate comes out of the caller's width, and every one after it
+# stacks downward inside that column, tallest first for the reason widest-first
+# existed: it spreads the cost instead of quartering the newest arrival. From
+# then on the caller keeps the full height of the window, which is the point
+# rather than a side effect -- one full-height pane beside a stack of short ones
+# says at a glance which pane a human is meant to be typing in.
+#
+# Opening beats the layout wherever the two conflict, which is the order asked
+# for. A caller too narrow to split sideways is split downward instead, and a
+# column with no vertical room left falls back to widening itself; only when
+# neither axis fits on any pane does this come back empty, and check_room turns
+# that into the refusal.
+next_split() {
+    local own layout ids
+    own="$(own_pane)"
+    layout="$(herdr pane layout --pane "$own")"
+    ids="$(delegate_panes | cut -f2 | jq -R -s -c 'split("\n") | map(select(length > 0))')"
+
+    printf '%s' "$layout" | jq -r --arg own "$own" --argjson ids "$ids" \
+        --argjson mincols "$MIN_COLS" --argjson minrows "$MIN_ROWS" '
+        .result.layout.panes as $panes
+        | ($panes | map(select(.pane_id as $i | $ids | index($i)))) as $dlg
+        | (if ($dlg | length) == 0
+           then [$panes[] | select(.pane_id == $own)]
+           else $dlg end) as $pool
+        | ($pool | max_by(.rect.height)) as $tall
+        | ($pool | max_by(.rect.width))  as $wide
+        | if ($dlg | length) == 0 and (($wide.rect.width / 2) >= $mincols)
+          then "\($wide.pane_id) right"
+          elif ($tall.rect.height / 2) >= $minrows
+          then "\($tall.pane_id) down"
+          elif ($wide.rect.width / 2) >= $mincols
+          then "\($wide.pane_id) right"
+          else "" end'
+}
+
 # The refusal for a tab with no room left lives in check_room, called once by
-# cmd_spawn before the retry loop rather than from in here. `die` inside this
-# function runs inside a command substitution, so its exit kills only the
-# subshell: the retry loop saw an ordinary failure, tried three times, and
-# finished by blaming a busy machine for a window that was simply full. A hard
+# cmd_spawn before the retry loop rather than from split_for_delegate. `die`
+# inside a function whose output is captured runs in a subshell, so its exit
+# kills only that: the retry loop saw an ordinary failure, tried three times, and
+# finished by blaming a busy machine for a window that was merely full. A hard
 # refusal has to be raised where it can actually stop the caller.
 split_for_delegate() {
-    local id
-    id="$(widest_pane | cut -d' ' -f1)"
-    [ -n "$id" ] && [ "$id" != null ] || die 'could not read the pane layout'
-    herdr pane split --pane "$id" --direction right --cwd "$PWD" --no-focus \
+    local target dir
+    read -r target dir <<<"$(next_split)"
+    [ -n "${target:-}" ] && [ "$target" != null ] || die 'could not read the pane layout'
+    herdr pane split --pane "$target" --direction "$dir" --cwd "$PWD" --no-focus \
         | jq -r '.result.pane.pane_id'
 }
 
-# `<pane_id> <columns>` for the widest pane in the caller's own tab.
+# Refuse a delegate this tab has no room for, with the numbers rather than a pane
+# that starts and then silently never takes a prompt.
 #
-# --pane is not optional here, and leaving it off is the mistake this comment
-# exists to prevent. A bare `herdr pane layout` answers for the *focused* tab,
-# which is not the caller's whenever a human has clicked elsewhere -- so the
-# split landed in another workspace, the delegate was invisible to every verb
-# here, and two of them were left sitting in another session's tab. That is the
-# same cross-session reach the closing verbs were scoped out of, reintroduced by
-# a call that enumerates panes without saying whose. CLAUDE.md says every such
-# call needs the scope; this is what ignoring it looks like.
-widest_pane() {
-    herdr pane layout --pane "$(own_pane)" \
-        | jq -r '.result.layout.panes | max_by(.rect.width) | "\(.pane_id) \(.rect.width)"'
-}
-
-# Refuse a delegate this tab has no room for, with the numbers rather than a
-# pane that starts and then silently never takes a prompt.
+# --pane is not optional on the layout call inside next_split, and leaving it off
+# is the mistake this comment exists to prevent. A bare `herdr pane layout`
+# answers for the *focused* tab, which is not the caller's whenever a human has
+# clicked elsewhere -- so the split landed in another workspace, the delegate was
+# invisible to every verb here, and two were left sitting in another session's
+# tab. CLAUDE.md says every call that enumerates panes needs the scope.
 check_room() {
-    local id width
-    read -r id width <<<"$(widest_pane)"
-    [ -n "${width:-}" ] && [ "$width" != null ] || die 'could not read the pane layout'
-    [ $(( width / 2 )) -ge "$MIN_COLS" ] || die "no room in this tab: the widest pane is ${width} columns, a split would leave $(( width / 2 )), and a delegate needs ${MIN_COLS}. Collect and --close one, or widen the window."
+    if [ -n "$(next_split)" ]; then return 0; fi
+    local own w h n
+    own="$(own_pane)"
+    read -r w h <<<"$(herdr pane layout --pane "$own" | jq -r --arg p "$own" \
+        '.result.layout.panes[] | select(.pane_id == $p) | "\(.rect.width) \(.rect.height)"')"
+    n="$(delegate_panes | grep -c . || true)"
+    die "no room in this tab: ${n} delegate pane(s) open already and nothing left to split -- a delegate needs ${MIN_COLS} columns or ${MIN_ROWS} rows, and this pane is ${w}x${h}. --collect one, which closes it, or widen the window."
 }
 
 # The model keys of cursor's config, as one JSON object, or empty when there is
@@ -446,6 +506,11 @@ try_spawn() {
     return 1
 }
 
+# --async: spawn and return at once. A throughput device rather than a budget
+# one -- the chair carries on working, so the wall clock is unchanged and the
+# scarce plan is spared nothing. Worth reaching for when several delegates are
+# meant to run at the same time, and settled together with --collect-all; the
+# default form above is what to reach for otherwise.
 cmd_spawn() {
     # ${1:-} and ${2:-} rather than $1 and $2: set -u would turn `delegate bulk`,
     # or a bare `delegate --wait`, into an unbound variable trace instead of the
@@ -473,7 +538,14 @@ cmd_spawn() {
     # a name this one cannot safely use.
     if herdr agent list | jq -e --arg n "$name" \
         '[.result.agents[]? | select(.name == $n)] | length > 0' >/dev/null 2>&1; then
-        die "an agent named '$name' is already live"
+        # Measured 12 times across 9 sessions, and a delegate nobody closed is
+        # the usual reason -- so the message says which, because "already live"
+        # alone sends the caller to invent a second name instead of collecting
+        # the first one.
+        if [ -n "$(pane_of "$name")" ]; then
+            die "'$name' is a delegate in this tab that was never collected; \`delegate --collect $name\` reads it and closes it"
+        fi
+        die "an agent named '$name' is already live, in another tab; pick another name"
     fi
 
     check_room
@@ -523,6 +595,55 @@ state_of() {
     printf '%s' "$s"
 }
 
+# Print what a delegate has to show, then end it. That is the whole of what a
+# caller ever does with one, which is why it is one function rather than a verb
+# to read and a second verb to close: the panes leaked because those were two
+# verbs, and whichever one the chair reached for, the other was a median of 19
+# tool calls away.
+#
+# Closed only when it stopped on its own. `blocked` is a delegate waiting on a
+# keypress; `unknown` is herdr saying it cannot classify the pane, which its own
+# skill is explicit does not prove completion; an expired wait may be one still
+# working. Closing any of those throws the work away along with the question, so
+# those keep their pane and the caller is told which it was.
+# Read the pane both ways and keep whichever carries more.
+#
+# `visible` alone was right while a delegate got half the window. Stacked into a
+# ten-row pane it truncates the answer to ten lines, and the delegate looks like
+# it said almost nothing. The scrollback sources have the whole turn there --
+# cursor-agent scrolls rather than holding the alternate screen, which was
+# checked rather than assumed: `recent-unwrapped` on a 10-row pane came back with
+# the prompt, the answer and the banner above it.
+#
+# They are not a replacement either, which is the trap agents/global.md records:
+# on a tall pane whose output has not scrolled off yet, `recent-unwrapped` is an
+# empty string. Neither source is right on its own; the longer of the two is
+# right in both directions, and stacking is what made both cases ordinary.
+read_agent() {
+    local pane="$1" vis rec
+    vis="$(herdr agent read "$pane" --source visible --lines 120 2>/dev/null || true)"
+    rec="$(herdr agent read "$pane" --source recent-unwrapped --lines 120 2>/dev/null || true)"
+    if [ "${#rec}" -gt "${#vis}" ]; then
+        printf '%s\n' "$rec"
+    else
+        printf '%s\n' "$vis"
+    fi
+}
+
+report_and_release() {
+    local name="$1" pane="$2" state
+    state="$(state_of "$pane")"
+    printf '=== %s: %s ===\n' "$name" "$state"
+    read_agent "$pane"
+    case "$state" in
+        idle|done)
+            herdr pane close "$pane" >/dev/null 2>&1 || true ;;
+        *)
+            printf 'delegate: %s is %s -- its pane is still open; --answer or --close it.\n' \
+                "$name" "$state" >&2 ;;
+    esac
+}
+
 cmd_collect() {
     local name="${1:-}" timeout="${2:-}"
     [ -n "$name" ] || die 'which delegate?'
@@ -544,31 +665,30 @@ cmd_collect() {
         herdr agent wait "$pane" >/dev/null
     fi
 
-    printf '=== %s: %s ===\n' "$name" "$(state_of "$pane")"
-
-    # --source visible rather than recent: the scrollback sources return an
-    # empty string until output has actually scrolled off, which is the trap
-    # agents/global.md records for panes and is no different here.
-    herdr agent read "$pane" --source visible --lines 120
+    report_and_release "$name" "$pane"
 }
 
-# Hand it over and wait: spawn, settle, read, close, in one call.
+# The default form: spawn, settle, read, close, in one call.
 #
-# The plain form above is a throughput device. It returns the moment the delegate
-# picks the task up, so the chair carries on working and the wall clock is
-# unchanged -- which is also why it moves no budget. Measured across a week of
-# transcripts: the three sessions that delegated most, 13 and 5 and 3 times, are
-# three of the five largest claude spenders of that week. Fired and forgotten, a
-# delegate adds work rather than moving it.
+# This was `--wait` and the fire-and-forget form above was the default, and the
+# measurement is why they swapped. 852 delegate calls across 403 transcripts
+# produced 158 delegates -- 5.4 tool calls each, against one for the built-in
+# subagent this actually competes with, and 288 of those calls are --status.
+# Fired and forgotten, a delegate turns its caller into a poller, which is a
+# second way of saying what the earlier measurement already said about budget:
+# the wall clock is unchanged, so nothing moved.
 #
-# So this verb is for the other reason to delegate: which plan pays. The chair
-# stops, and the tokens are spent on the destination's subscription instead of
-# its own. A choice per call rather than a replacement -- `bulk` when the point
-# is parallelism, `--wait bulk` when the point is the plan.
+# The leak is the same arithmetic from the other end. A median of 19 tool calls,
+# and a mean of 29, separate a spawn from its --close, so the close depends on
+# the chair still remembering across a stretch that routinely spans a
+# compaction; 20 of the 158 were never closed at all. A rule that needs the
+# agent to remember at the right moment loses -- the lesson the routing triggers
+# already cost once, arriving at the other end of a delegate's life.
 #
-# It also collapses the three-verb ceremony (spawn, --collect, --close) that made
-# the plain form expensive to reach for, and closing on the way out is what keeps
-# check_room from refusing the third handoff of a session.
+# So one call is the default, and it is also the only form that moves budget:
+# the chair stops, and the tokens are spent on the destination's subscription
+# rather than its own. --async keeps the throughput device for the case it is
+# actually for, a fan-out settled with --collect-all.
 cmd_handoff() {
     local name="${2:-}"
 
@@ -583,29 +703,24 @@ cmd_handoff() {
     pane="$(pane_of "$name")"
     [ -n "$pane" ] || die "started '$name' but cannot find its pane in this tab"
 
+    # Printed before the wait rather than after it, because the caller's harness
+    # may not outlive the wait. Claude Code's Bash tool stops at 120s by default
+    # and refuses to be given more than 600s, while WAIT_MS is fifteen minutes,
+    # so a handoff can be killed from outside -- and a killed script runs none of
+    # the cleanup below, which orphans the pane and leaves the chair holding
+    # nothing but "command timed out". Output written before the kill still
+    # reaches it, so this line is what turns that into a --collect. Raising the
+    # tool call's own timeout to 600000 avoids it in the first place.
+    printf 'delegate: waiting on %s. If this call is killed, `delegate --collect %s` picks it up.\n' \
+        "$name" "$name" >&2
+
     # A timeout here is tolerated rather than fatal. `herdr agent wait` fails when
     # it expires and under set -e that would exit before printing anything, but
     # the tail of a delegate that has been running for fifteen minutes is exactly
     # what the caller needs to see, finished or not.
     herdr agent wait "$pane" --timeout "$WAIT_MS" >/dev/null 2>&1 || true
 
-    local state
-    state="$(state_of "$pane")"
-    printf '=== %s: %s ===\n' "$name" "$state"
-    # --source visible, for the reason cmd_collect gives.
-    herdr agent read "$pane" --source visible --lines 120
-
-    # Closed only when it stopped on its own. `blocked` is a delegate waiting on
-    # a keypress, and a timeout may be one that is still working; closing either
-    # throws the work away along with the question. So the pane stays, --answer is
-    # still the keypress, and the caller is told which of the two it was.
-    case "$state" in
-        idle|done)
-            herdr pane close "$pane" >/dev/null 2>&1 || true ;;
-        *)
-            printf 'delegate: %s is %s -- its pane is still open; --answer or --close it.\n' \
-                "$name" "$state" >&2 ;;
-    esac
+    report_and_release "$name" "$pane"
 }
 
 # A leftover blocked delegate is waiting on a keypress -- hook trust, a
@@ -756,6 +871,11 @@ usage() {
 case "${1:-}" in
     --list)      cmd_list ;;
     --status)    cmd_status ;;
+    --async)     shift; cmd_spawn "$@" ;;
+    # An alias and not a second path. The string is in old transcripts and in a
+    # human's fingers, and the behaviour it asked for is now what happens
+    # anyway, so accepting it costs one line where erroring would cost a round
+    # trip to say something the caller already meant.
     --wait)      shift; cmd_handoff "$@" ;;
     --collect)   shift; cmd_collect "$@" ;;
     --collect-all) cmd_collect_all ;;
@@ -764,5 +884,5 @@ case "${1:-}" in
     --close-all) cmd_close_all ;;
     -h|--help|'') usage ;;
     -*)          die "unknown option '$1'; try --help" ;;
-    *)           cmd_spawn "$@" ;;
+    *)           cmd_handoff "$@" ;;
 esac
