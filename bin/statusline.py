@@ -33,13 +33,15 @@ gone looking for, which is why any pane drawing a status line writes the whole
 block rather than just its own line:
 
     claude   `rate_limits` on stdin, kept in a cache for the panes that lack it
-    codex    the last `token_count` of the newest ~/.codex/sessions rollout
+    codex    the last `token_count` under ~/.codex/sessions, rolled forward
+             when its window has closed rather than waiting for a live pane
     cursor   asked for over the network, with the token cursor-agent stored
 
 So nothing writes the block unless a claude or cursor-agent pane is drawing
 one, and "always visible" is really "visible while one of those two is on
 screen". Ten minutes of codex alone, or of a closed laptop, and the TTL empties
 it. That is the shape of the gap, and it is the price of adding no daemon.
+codex itself does not have to be in a pane: its number lives on disk.
 
 Colors are the 16 ANSI ones, so the terminal theme in config/ghostty/config
 is still the only place a palette is defined. Nothing here picks an RGB value.
@@ -93,14 +95,19 @@ CLAUDE_CACHE_TTL = 1800
 
 CODEX_SESSIONS = os.path.expanduser("~/.codex/sessions")
 # codex writes its rate limits into every `token_count` event, so the answer is
-# always near the end of the newest rollout. Read back far enough to clear one
-# turn's worth of tool output without reading the whole file.
+# always near the end of a rollout. Read back far enough to clear one turn's
+# worth of tool output without reading the whole file.
 CODEX_TAIL_BYTES = 512 * 1024
 CODEX_CACHE = os.path.join(PR_CACHE_DIR, "quota-codex.json")
-# No grace beyond the TTL: an empty read here means the window has rolled over,
-# which is a fact rather than a failure, and holding the old number would be
-# holding a wrong one.
+# A brand-new rollout has no `token_count` yet, and a premium session writes
+# the key with empty windows. Walk a handful of newer names before giving up
+# rather than treating "the newest file is quiet" as "there is no number".
+CODEX_ROLLOUT_TRIES = 16
 CODEX_CACHE_TTL = 60
+# An empty read here is "no session has written windows", not "the window
+# rolled over" -- rollover is applied in `rolled_window` and comes back as
+# 0%. Hold the last number across the empty case the same way cursor does.
+CODEX_MAX_AGE = 1800
 
 # cursor's plan usage is in neither its payload nor a file, so it is asked for.
 # One `GetCurrentPeriodUsage` carries both halves -- `totalPercentUsed` and the
@@ -528,25 +535,45 @@ def claude_usage(rate_limits):
     return max(windows, key=lambda window: pct(window["used"]))
 
 
-def newest_codex_rollout():
+def newest_codex_rollouts():
     # rollout-<timestamp>-<uuid>.jsonl under sessions/<year>/<month>/<day>, all
-    # zero-padded, so the newest is the lexicographic maximum of the names.
+    # zero-padded, so newest-first is the lexicographic reverse of the names.
     # Descending by the largest directory at each level would be cheaper and is
     # wrong: codex leaves a day directory behind when its sessions are cleared,
     # and one empty newest day would report no codex at all.
     import glob as _glob
 
     rollouts = _glob.glob(os.path.join(CODEX_SESSIONS, "*", "*", "*", "rollout-*.jsonl"))
-    if not rollouts:
-        return ""
-    return max(rollouts, key=os.path.basename)
+    return sorted(rollouts, key=os.path.basename, reverse=True)
 
 
-def read_codex_usage():
-    path = newest_codex_rollout()
-    if not path:
+def rolled_window(window):
+    # A reset that has passed is not a missing number. The window has closed
+    # and nothing has run since, so spent is 0% until the next one closes.
+    # Holding the old percentage was the wrong number; hiding the row was the
+    # other wrong number, because the weekly window is often still open.
+    if not window or window.get("used_percent") is None:
         return None
 
+    used = window["used_percent"]
+    resets_at = window.get("resets_at")
+    if resets_at is None:
+        return {"used": used, "resets_at": None}
+
+    resets_at = as_float(resets_at)
+    now = time.time()
+    if resets_at > now:
+        return {"used": used, "resets_at": resets_at}
+
+    minutes = as_float(window.get("window_minutes"))
+    if minutes <= 0:
+        return None
+    period = minutes * 60.0
+    skipped = int((now - resets_at) // period) + 1
+    return {"used": 0.0, "resets_at": resets_at + skipped * period}
+
+
+def usage_from_codex_rollout(path):
     try:
         with open(path, "rb") as fh:
             fh.seek(0, os.SEEK_END)
@@ -569,13 +596,28 @@ def read_codex_usage():
         # claude's do. This plan only fills `primary`, but taking it blindly
         # would hide a weekly limit behind a five-hour one elsewhere.
         windows = [
-            {"used": window["used_percent"], "resets_at": window.get("resets_at")}
-            for window in (limits.get("primary"), limits.get("secondary"))
-            if window and window.get("used_percent") is not None
+            rolled
+            for rolled in (
+                rolled_window(limits.get("primary")),
+                rolled_window(limits.get("secondary")),
+            )
+            if rolled
         ]
         if not windows:
             continue
         return max(windows, key=lambda window: pct(window["used"]))
+    return None
+
+
+def read_codex_usage():
+    # A session that has just opened, or one that wrote `rate_limits` with
+    # empty windows, is the newest file and has nothing to report. The number
+    # we want is in the next one that did; stopping at the newest name is how
+    # "codex is not in a pane" used to clear the row.
+    for path in newest_codex_rollouts()[:CODEX_ROLLOUT_TRIES]:
+        usage = usage_from_codex_rollout(path)
+        if usage:
+            return usage
     return None
 
 
@@ -721,7 +763,7 @@ def push_quota(data):
     rows = {
         "claude": quota_row("claude", read_usage(CLAUDE_CACHE, CLAUDE_CACHE_TTL)[0]),
         "codex": quota_row("codex", fetched_usage(
-            CODEX_CACHE, CODEX_CACHE_TTL, CODEX_CACHE_TTL, read_codex_usage)),
+            CODEX_CACHE, CODEX_CACHE_TTL, CODEX_MAX_AGE, read_codex_usage)),
         "cursor": quota_row("cursor", fetched_usage(
             CURSOR_CACHE, CURSOR_CACHE_TTL, CURSOR_MAX_AGE, fetch_cursor_usage)),
     }

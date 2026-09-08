@@ -145,8 +145,10 @@ exactly that reason.
 
 The three sources are not equally cheap, and cursor's is the one to think twice
 about before extending. claude's arrives on stdin. codex's is a file read —
-`rate_limits` sits in every `token_count` event of the newest rollout under
-`~/.codex/sessions`. cursor has neither, so it is asked over the network:
+`rate_limits` sits in every `token_count` event under `~/.codex/sessions`,
+and a live pane is not required: a window whose `resets_at` has passed
+rolls to 0% rather than hiding the row, and a newest rollout that has not
+written one yet is skipped. cursor has neither, so it is asked over the network:
 `GetCurrentPeriodUsage` on `aiserver.v1` at `api2.cursor.sh`, with the
 `cursor-access-token` keychain item as a bearer. That reply carries both
 `totalPercentUsed` and `billingCycleEnd`, which is why only one of the three
