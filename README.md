@@ -103,6 +103,28 @@ These cannot be automated:
       `~/.cursor/cli-config.json`, and is what a Grok session started by
       hand inherits
 
+- [ ] Pin codex's model and reasoning effort in `~/.codex/config.toml`. Same
+      category as the pin above, and machine-local for the same reason: that
+      file also carries a trust level per project directory. `bin/delegate.sh`
+      passes codex no `--model`, so this is what the `gpt` and `image` roles
+      inherit as well as a session started by hand:
+
+      ```toml
+      # ~/.codex/config.toml -- top level, above the [projects] tables.
+      model = "gpt-6-astra"
+      model_reasoning_effort = "medium"
+      ```
+
+      `medium` rather than `high` because effort is a smaller lever than it
+      looks. Measured over this machine's 98 `high` turns: reasoning was
+      **0.08%** of the tokens a turn spent and 2.4% of its cost at API rates,
+      while input — re-sent once per tool call, eight calls to the median turn
+      — was 99.5% of the tokens with 95% of that cached. Dropping a step buys
+      about 1% and nothing more, so the rung is chosen on how much thinking the
+      work wants, which is where codex's own docs put it: start at medium, go
+      to high when depth is actually missing. What does move capacity is
+      context, not effort
+
 - [ ] Start `codex` once and press <kbd>t</kbd> at its hook review prompt.
       codex holds every newly installed hook until a human trusts it, so
       herdr's agent-state integration reports nothing until then. `claude` and
@@ -180,7 +202,7 @@ delegate --list                  # the table, with what each plan has left
 | `deep` | Grok 4.6 Extra High | When a first pass was not enough |
 | `peer` | Grok 4.6 High | A parallel subtask the caller could have done itself |
 | `hard` | Fable 5 (claude) | Scarce — genuinely hard design and argument |
-| `gpt` | GPT-5.6 Sol (codex) | Scarce — a different vendor, not a generic second pass |
+| `gpt` | GPT-6 Astra (codex) | Scarce — a different vendor, not a generic second pass |
 | `image` | Image 2, through codex | Images |
 
 Seven roles, four destinations. Four land on Grok because that is the plentiful

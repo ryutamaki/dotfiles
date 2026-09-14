@@ -189,7 +189,7 @@ window. Nothing is chosen at launch, and that session manages rather than does
 everything itself. Grok is the chair when the claude plan is empty, or
 when the work wants Grok in it (a review, a long loop). `bin/delegate.sh`
 is how either of them reaches a model that is not already in the chair --
-Fable 5 through claude, GPT-5.6 Sol through codex, Image 2 through
+Fable 5 through claude, GPT-6 Astra through codex, Image 2 through
 codex, and Grok itself when the chair is Opus.
 
 **A caller picks a role, never a model string.** That is the whole point rather
@@ -233,8 +233,11 @@ a decision to make on purpose rather than a correction.
 
 All four destinations were confirmed by asking each delegate what it was:
 `Cursor Grok 4.6 High`, `Cursor Grok 4.6 Extra High`, `Fable 5 with xhigh
-effort`, `gpt-5.6-sol xhigh`. A `web` delegate was confirmed the same way to
-actually hold `WebSearch` and `WebFetch`, which is the whole basis of that role.
+effort`, `gpt-6-astra`. That last one reads differently from the other three,
+because `dest()` hands codex no `--model`: what it reports is whatever
+`~/.codex/config.toml` pins, `model_reasoning_effort` included, rather than
+anything named here. A `web` delegate was confirmed the same way to actually
+hold `WebSearch` and `WebFetch`, which is the whole basis of that role.
 Confirm a change to either table this way -- the CLI's own header line, not the
 model's answer, which gets its own name wrong.
 
