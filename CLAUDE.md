@@ -171,11 +171,11 @@ clear of the status line.
 
 ## Two entry points, five models
 
-Either Opus 5 or Grok 4.6 Extra High is started by hand. `claude` is Opus
+Either Opus 5.5 or Grok 4.7 Extra High is started by hand. `claude` is Opus
 -- `claude/settings.base.json` pins `opus[1m]` and `effortLevel: xhigh`.
 `cursor-agent` is Grok -- `~/.cursor/cli-config.json` pins it, and that file is
 machine-local for the same reason the status line is. It pins
-`Cursor Grok 4.6 Extra High`, which is what README's checklist asks for.
+`Grok 4.7 Extra High`, which is what README's checklist asks for.
 
 Keeping it there took a fix, because **cursor-agent writes whatever `--model` it
 was launched with back into that file on startup**. So every delegate quietly
@@ -189,7 +189,7 @@ window. Nothing is chosen at launch, and that session manages rather than does
 everything itself. Grok is the chair when the claude plan is empty, or
 when the work wants Grok in it (a review, a long loop). `bin/delegate.sh`
 is how either of them reaches a model that is not already in the chair --
-Fable 5 through claude, GPT-6 Astra through codex, Image 2 through
+Fable 5.1 through claude, GPT-6 Astra through codex, Image 2 through
 codex, and Grok itself when the chair is Opus.
 
 **A caller picks a role, never a model string.** That is the whole point rather
@@ -215,7 +215,7 @@ came back short, a different vendor, images. When the chair is already Grok,
 those four roles are this session: do not open another Grok for them.
 
 Fast is absent from every Grok destination, and the price of that is measured
-rather than assumed. `cursor.com/docs/models/grok-4-6` prices standard Grok 4.6
+rather than assumed. `cursor.com/docs/models/grok-4-7` prices standard Grok 4.7
 at $2 / $0.50 / $6 per Mtok (input / cached / output) and Fast at exactly double,
 $4 / $1 / $12; the paid plans meter a token pool rather than requests, so Fast
 drains it twice as fast. The same page also says **"Fast is the default speed
@@ -232,7 +232,7 @@ was named as a reason to prefer Grok in the first place, so restoring `-fast` is
 a decision to make on purpose rather than a correction.
 
 All four destinations were confirmed by asking each delegate what it was:
-`Cursor Grok 4.6 High`, `Cursor Grok 4.6 Extra High`, `Fable 5 with xhigh
+`Grok 4.7 256K High`, `Grok 4.7 256K Extra High`, `Fable 5.1 with xhigh
 effort`, `gpt-6-astra`. That last one reads differently from the other three,
 because `dest()` hands codex no `--model`: what it reports is whatever
 `~/.codex/config.toml` pins, `model_reasoning_effort` included, rather than

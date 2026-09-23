@@ -98,7 +98,7 @@ These cannot be automated:
       it is account-side and cannot be symlinked. Re-paste it when that file
       changes
 
-- [ ] Set cursor-agent's default model to **Grok 4.6 Extra High** (not Fast).
+- [ ] Set cursor-agent's default model to **Grok 4.7 Extra High** (not Fast).
       `claude` pins Opus from the repo; this pin is machine-local, in
       `~/.cursor/cli-config.json`, and is what a Grok session started by
       hand inherits
@@ -176,7 +176,7 @@ herdr status          # client and server
 
 ## Two entry points, five models
 
-Opus 5 or Grok 4.6 Extra High gets started by hand — `claude` or
+Opus 5.5 or Grok 4.7 Extra High gets started by hand — `claude` or
 `cursor-agent`, each with the model already pinned. Grok is the chair when
 the claude plan is empty, or when the work wants Grok in it. Either
 manages, and hands work that is not already in the chair to the rest of
@@ -197,11 +197,11 @@ delegate --list                  # the table, with what each plan has left
 
 | Role | Goes to | For |
 |---|---|---|
-| `bulk` | Grok 4.6 High (cursor-agent) | Default — inventories, first passes, a lot of files |
-| `web` | Grok 4.6 High | Research that means reading many web pages |
-| `deep` | Grok 4.6 Extra High | When a first pass was not enough |
-| `peer` | Grok 4.6 High | A parallel subtask the caller could have done itself |
-| `hard` | Fable 5 (claude) | Scarce — genuinely hard design and argument |
+| `bulk` | Grok 4.7 High (cursor-agent) | Default — inventories, first passes, a lot of files |
+| `web` | Grok 4.7 High | Research that means reading many web pages |
+| `deep` | Grok 4.7 Extra High | When a first pass was not enough |
+| `peer` | Grok 4.7 High | A parallel subtask the caller could have done itself |
+| `hard` | Fable 5.1 (claude) | Scarce — genuinely hard design and argument |
 | `gpt` | GPT-6 Astra (codex) | Scarce — a different vendor, not a generic second pass |
 | `image` | Image 2, through codex | Images |
 

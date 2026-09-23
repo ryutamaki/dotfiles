@@ -14,7 +14,7 @@
 #   delegate --close-all
 # :usage
 #
-# Either Opus 5 or Grok 4.6 Extra High is started by hand -- `claude` or
+# Either Opus 5.5 or Grok 4.7 Extra High is started by hand -- `claude` or
 # `cursor-agent`. Each pins its model so nothing is chosen at launch, and
 # that session manages rather than does everything itself. This is how it
 # hands work to a model that is not already in the chair. A human never
@@ -115,7 +115,7 @@ die() { printf 'delegate: %s\n' "$1" >&2; exit 1; }
 # different thing from this script naming one.
 #
 # Fast is absent from both Grok rungs, and that is a paid trade rather than a
-# free one. cursor.com/docs/models/grok-4-6 prices standard at $2 / $0.50 / $6
+# free one. cursor.com/docs/models/grok-4-7 prices standard at $2 / $0.50 / $6
 # per Mtok (input / cached / output) and Fast at exactly double, $4 / $1 / $12 --
 # and the same page says "Fast is the default speed tier on Pro and higher
 # plans". So naming `high` is stepping down from the plan's own default speed to
@@ -127,8 +127,8 @@ die() { printf 'delegate: %s\n' "$1" >&2; exit 1; }
 # to fix.
 dest() {
     case "$1" in
-        grok)      echo 'cursor|--model cursor-grok-4.6-high' ;;
-        grok-deep) echo 'cursor|--model cursor-grok-4.6-xhigh' ;;
+        grok)      echo 'cursor|--model grok-4.7-high' ;;
+        grok-deep) echo 'cursor|--model grok-4.7-xhigh' ;;
         fable)     echo 'claude|--model fable' ;;
         codex)     echo 'codex|' ;;
     esac
