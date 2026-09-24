@@ -90,3 +90,24 @@ a task is theirs once the task is over; say where it is and leave it running.
 The installed `herdr` skill documents the rest of that CLI, but it gates itself
 on the user naming herdr explicitly, so it will not fire on its own for this.
 Use the commands above directly.
+
+## A web screen has a request budget
+
+Any web app built or changed here holds each screen to about **5 API calls on
+first load, 10 at most**, and each call to **300ms**. A call that has a real
+reason to take longer says why in a comment on its route.
+
+Count the calls a screen makes whenever it gains a fetch, and design to the
+budget from the start rather than trimming later:
+
+- A list resolves the names it shows in one batch (`?ids=a,b,c`), one request
+  for the whole page rather than one per row.
+- A detail screen gets its side panels -- counts, badges, related records,
+  display names -- in the same response as the record itself, so nothing waits
+  on the record before it can start.
+- Existence checks read only the key, not the whole row.
+
+Measure against the production shape, not a laptop. A 0.25-vCPU container
+gets 25ms of CPU per 100ms, so a dozen parallel requests that finish in 15ms
+locally queue into 600ms there; `docker run --cpus=<production value>` on the
+production image reproduces it.
