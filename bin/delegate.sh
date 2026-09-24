@@ -630,6 +630,51 @@ read_agent() {
     fi
 }
 
+# Wait until a delegate has stopped, by the screen rather than by herdr's word.
+#
+# herdr's state for cursor-agent reads `idle` or `done` in the middle of a turn
+# -- during a long tool call, while a subagent runs, just after a follow-up
+# lands -- and `herdr agent wait` returns on it. Trusting that closed delegates
+# mid-task at least five times across two repositories, and the one form that
+# did it silently was the default: `=== name: done ===` over a snapshot of a
+# screen still saying Running, the pane gone and the work with it. That is why
+# single tasks kept being sent --async, so the chair could look before closing.
+#
+# So herdr's state is where to start looking, not the verdict. The verdict is a
+# screen that holds still for QUIET_S: a working CLI animates a spinner, a token
+# count or an elapsed time, and an idle one does not. That compares the screen
+# with itself rather than matching any CLI's wording, for the same reason the
+# spawn retry does not match starship's prompt character. If it moved, herdr is
+# asked again; a false `idle` answers at once, so that loop polls every QUIET_S.
+#
+# Returns 1 when the deadline passes first, which report_and_release reads as
+# "not stopped" whatever herdr says. There is always a deadline: a screen that
+# never holds still would otherwise hold the caller forever.
+QUIET_S=10
+
+screen_quiet() {
+    local pane="$1" prev cur i
+    prev="$(herdr agent read "$pane" --source visible --lines 120 2>/dev/null || true)"
+    for i in 1 2 3 4 5; do
+        sleep $(( QUIET_S / 5 ))
+        cur="$(herdr agent read "$pane" --source visible --lines 120 2>/dev/null || true)"
+        [ "$cur" = "$prev" ] || return 1
+    done
+}
+
+settle() {
+    local pane="$1" timeout_ms="$2" deadline left
+    deadline=$(( SECONDS + timeout_ms / 1000 ))
+    while :; do
+        left=$(( deadline - SECONDS ))
+        [ "$left" -gt 0 ] || return 1
+        # Tolerated rather than fatal: `herdr agent wait` fails when it expires,
+        # and under set -e that would exit before anything is printed or closed.
+        herdr agent wait "$pane" --timeout $(( left * 1000 )) >/dev/null 2>&1 || true
+        screen_quiet "$pane" && return 0
+    done
+}
+
 # Print what a delegate has to show, then end it. That is the whole of what a
 # caller ever does with one, which is why it is one function rather than a verb
 # to read and a second verb to close: the panes leaked because those were two
@@ -641,14 +686,24 @@ read_agent() {
 # skill is explicit does not prove completion; an expired wait may be one still
 # working. Closing any of those throws the work away along with the question, so
 # those keep their pane and the caller is told which it was.
+#
+# `moving` is the fourth: herdr says stopped but the screen never held still
+# before the deadline, which is settle's return and the case that used to lose
+# the work.
 report_and_release() {
-    local name="$1" pane="$2" state
+    local name="$1" pane="$2" quiet="$3" state
     state="$(state_of "$pane")"
+    case "$state" in
+        idle|done) [ "$quiet" = yes ] || state=moving ;;
+    esac
     printf '=== %s: %s ===\n' "$name" "$state"
     read_agent "$pane"
     case "$state" in
         idle|done)
             herdr pane close "$pane" >/dev/null 2>&1 || true ;;
+        moving)
+            printf 'delegate: %s still looks busy -- its pane is still open; --collect it again.\n' \
+                "$name" >&2 ;;
         *)
             printf 'delegate: %s is %s -- its pane is still open; --answer or --close it.\n' \
                 "$name" "$state" >&2 ;;
@@ -668,22 +723,18 @@ cmd_collect() {
     [ -n "$pane" ] || die "no delegate named '$name' in this tab"
 
     # No --until: idle, done and blocked all mean "stopped, go look". Waiting
-    # only for done would hang forever on a permission prompt. Spelled out both
-    # ways rather than ${timeout:+...}, which word-splits into one argument.
+    # only for done would hang forever on a permission prompt. Without a timeout
+    # it gets the handoff's WAIT_MS rather than forever, because settle needs a
+    # deadline and the caller's harness would stop an unbounded one anyway.
     #
-    # Tolerated rather than fatal, for the reason the handoff gives: `herdr agent
-    # wait` fails when it expires, and under set -e that exits before anything is
-    # printed or closed. This verb is the documented way back to a handoff the
-    # caller's harness killed, so the one path that recovery leans on was the one
-    # still unguarded -- a --collect with a timeout would come back silent, and
-    # leave the pane it was called to close.
-    if [ -n "$timeout" ]; then
-        herdr agent wait "$pane" --timeout "$timeout" >/dev/null 2>&1 || true
-    else
-        herdr agent wait "$pane" >/dev/null 2>&1 || true
-    fi
+    # An expired settle is tolerated rather than fatal, for the reason the
+    # handoff gives: this verb is the documented way back to a handoff the
+    # caller's harness killed, so it has to print what is there and leave the
+    # pane standing rather than come back silent.
+    local quiet=yes
+    settle "$pane" "${timeout:-$WAIT_MS}" || quiet=no
 
-    report_and_release "$name" "$pane"
+    report_and_release "$name" "$pane" "$quiet"
 }
 
 # The default form: spawn, settle, read, close, in one call.
@@ -736,9 +787,10 @@ cmd_handoff() {
     # it expires and under set -e that would exit before printing anything, but
     # the tail of a delegate that has been running for fifteen minutes is exactly
     # what the caller needs to see, finished or not.
-    herdr agent wait "$pane" --timeout "$WAIT_MS" >/dev/null 2>&1 || true
+    local quiet=yes
+    settle "$pane" "$WAIT_MS" || quiet=no
 
-    report_and_release "$name" "$pane"
+    report_and_release "$name" "$pane" "$quiet"
 }
 
 # A leftover blocked delegate is waiting on a keypress -- hook trust, a

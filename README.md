@@ -188,7 +188,9 @@ right CLI on the right model, and submits the task.
 
 ```sh
 delegate bulk audit "read every .tf file and list what 1.5.7 pins us to"
-delegate --collect audit         # wait for it to settle, print the tail
+                                 # waits, prints the answer, closes the pane
+delegate --async bulk a "..."    # fan-out: returns at once
+delegate --collect a             # wait for that one to settle, print it, close it
 delegate --status                # live delegates, and what each plan has left
 delegate --answer audit y        # leftover prompt, not the normal path
 delegate --close audit           # or --close-all

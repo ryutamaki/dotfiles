@@ -333,6 +333,26 @@ only form that leaves one standing, which is the case where that is deliberate.
 herdr's own skill is the reason: it means herdr cannot classify the pane and
 "does not prove completion".
 
+**`idle` and `done` do not prove it either, and closing on them alone lost work.**
+For cursor-agent herdr reports a stopped state in the middle of a turn -- a long
+tool call, a subagent, a follow-up just landed -- and `herdr agent wait` returns
+on it. Recorded at least five times in two repositories' memory between 09-03
+and 09-14, and seen by a human: `=== name: done ===` over a screen still saying
+Running, the pane closed and the work unrecoverable. That, not habit, is why 77
+of the 251 `--async` spawns after 09-05 were single tasks the chair watched
+before closing; the other 172 were real fan-out, and none were fired only to be
+polled.
+
+So herdr's state is where `settle` starts looking and the screen is the verdict:
+closed only once `visible` has held still for `QUIET_S`. A working CLI animates
+a spinner, a token count or a timer -- measured, a cursor-agent pane in a
+75-second `sleep` changed hash at every 4-second sample and froze the moment it
+finished. That compares the screen with itself rather than matching wording, the
+same reason the spawn retry does not match starship's prompt character. A
+deadline that passes first reports `moving` and keeps the pane. The false `idle`
+itself did not reproduce while this was tested, so the guard is verified on both
+of its exits and not yet against the case that motivated it.
+
 What none of that reaches is a delegate whose tab has moved on. Every closing
 verb is scoped to the caller's tab, deliberately, and the price of that scope is
 a leak nothing can close and nothing can see -- two were sitting `idle` in other
@@ -566,7 +586,7 @@ same reason. A loop re-reads its ledger and rebuilds its context every iteration
 so it empties the chair's plan faster than anything else here, and which chair it
 is in is knowable before the first iteration even when the goal is `不明`. Above
 a few dozen iterations the answer is to start the loop in a Grok chair, not to
-route out of a claude one; `delegate --wait bulk` per iteration is the fallback
+route out of a claude one; `delegate bulk` per iteration is the fallback
 for a loop already running in the wrong one.
 
 The ledger is the state, which is why the skill says to put its path in the
