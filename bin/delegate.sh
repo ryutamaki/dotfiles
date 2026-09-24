@@ -110,9 +110,18 @@ die() { printf 'delegate: %s\n' "$1" >&2; exit 1; }
 
 # Destinations first, roles second, because several roles share a destination
 # and writing the model string once per role is how the second copy that drifts
-# gets made. These four are the only launch model strings on this machine; the
+# gets made. These five are the only launch model strings on this machine; the
 # other three CLIs pin their own defaults in their own config, which is a
 # different thing from this script naming one.
+#
+# codex is two destinations rather than one because its catalogue now has a
+# rung per job. `gpt` is a second opinion from a different vendor, which wants a
+# capable model rather than the frontier one, so it gets GPT-6 Sol ("workhorse
+# model for coding and everyday work"). `image` only drives the Image 2 tool --
+# the picture is drawn by that, not by the chat model -- so it gets GPT-6 Luna
+# ("fast and affordable model for easier tasks"). A session started by hand
+# gets GPT-6 Sol too, from ~/.codex/config.toml -- a separate pin that happens to
+# agree with `gpt`, not a copy of this one.
 #
 # Fast is absent from both Grok rungs, and that is a paid trade rather than a
 # free one. cursor.com/docs/models/grok-4-7 prices standard at $2 / $0.50 / $6
@@ -130,7 +139,8 @@ dest() {
         grok)      echo 'cursor|--model grok-4.7-high' ;;
         grok-deep) echo 'cursor|--model grok-4.7-xhigh' ;;
         fable)     echo 'claude|--model fable' ;;
-        codex)     echo 'codex|' ;;
+        sol)       echo 'codex|--model gpt-6-sol' ;;
+        luna)      echo 'codex|--model gpt-6-luna' ;;
     esac
 }
 
@@ -145,8 +155,8 @@ route() {
         peer)      echo 'grok|A parallel subtask this session could have done itself' ;;
         deep)      echo 'grok-deep|When a first pass was not enough' ;;
         hard)      echo 'fable|Scarce. Genuinely hard design and argument' ;;
-        gpt)       echo 'codex|Scarce. A different vendor -- not a generic second pass' ;;
-        image)     echo 'codex|Images, through Image 2. Same destination as gpt' ;;
+        gpt)       echo 'sol|Scarce. A different vendor -- not a generic second pass' ;;
+        image)     echo 'luna|Images, through Image 2. Same CLI as gpt, a lighter model' ;;
         *)         return 1 ;;
     esac
 }
@@ -267,9 +277,10 @@ require_herdr() {
     command -v herdr >/dev/null || die 'herdr is not on PATH'
 }
 
-# codex takes no --model here: ~/.codex/config.toml owns that value, and
-# printing a copy of it would put a model string in a second place. Name the
-# owner instead.
+# A destination with no --model inherits its CLI's own config, and printing a
+# copy of that value would put a model string in a second place. Name the owner
+# instead. Every destination names one today; this stays for the next that does
+# not.
 model_column() {
     if [ -n "$2" ]; then printf '%s' "${2#--model }"; else printf '(%s config)' "$1"; fi
 }

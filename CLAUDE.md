@@ -189,8 +189,8 @@ window. Nothing is chosen at launch, and that session manages rather than does
 everything itself. Grok is the chair when the claude plan is empty, or
 when the work wants Grok in it (a review, a long loop). `bin/delegate.sh`
 is how either of them reaches a model that is not already in the chair --
-Fable 5.1 through claude, GPT-6 Astra through codex, Image 2 through
-codex, and Grok itself when the chair is Opus.
+Fable 5.1 through claude, GPT-6 Sol through codex, Image 2 through
+codex on GPT-6 Luna, and Grok itself when the chair is Opus.
 
 **A caller picks a role, never a model string.** That is the whole point rather
 than a convenience: choosing correctly at launch means knowing the shape of the
@@ -198,10 +198,10 @@ work before doing any of it, which is exactly what is not known then. The names
 are `bulk`, `web`, `deep`, `peer`, `hard`, `gpt`, `image`.
 
 **Destinations and roles are two tables, not one, and keeping them apart is the
-point.** Seven roles land on four destinations, so writing the model string once
+point.** Seven roles land on five destinations, so writing the model string once
 per role is precisely how the second copy that drifts gets made -- and a drifted
 one fails quietly, because cursor-agent accepts an unknown `--model` and carries
-on with something else. So `dest()` holds the four strings and nothing else does,
+on with something else. So `dest()` holds the five strings and nothing else does,
 `route()` maps a role to a destination and a sentence, and `resolve()` joins them
 for the three callers that need both.
 
@@ -231,12 +231,18 @@ names for one call. It is also the one line here that trades away speed, which
 was named as a reason to prefer Grok in the first place, so restoring `-fast` is
 a decision to make on purpose rather than a correction.
 
-All four destinations were confirmed by asking each delegate what it was:
+All five destinations were confirmed by asking each delegate what it was:
 `Grok 4.7 256K High`, `Grok 4.7 256K Extra High`, `Fable 5.1 with xhigh
-effort`, `gpt-6-astra`. That last one reads differently from the other three,
-because `dest()` hands codex no `--model`: what it reports is whatever
-`~/.codex/config.toml` pins, `model_reasoning_effort` included, rather than
-anything named here. A `web` delegate was confirmed the same way to actually
+effort`, `GPT-6-Sol medium`, `GPT-6-Luna medium`. codex is two destinations
+because its catalogue has a rung per job: `gpt` is a second opinion, which wants
+a capable model rather than the frontier one, and `image` only drives the Image
+2 tool, so the cheapest chat model is enough. A session started by hand
+gets GPT-6 Sol from `~/.codex/config.toml`, a separate pin that happens to agree
+with `gpt`, and the effort in
+both headers is that file's `model_reasoning_effort`, not anything named here.
+Unlike cursor-agent, codex does not write `--model` back into its config, so
+nothing needs restoring around it. The Luna delegate, asked, called itself
+`gpt-6-sol`. A `web` delegate was confirmed the same way to actually
 hold `WebSearch` and `WebFetch`, which is the whole basis of that role.
 Confirm a change to either table this way -- the CLI's own header line, not the
 model's answer, which gets its own name wrong.

@@ -105,13 +105,13 @@ These cannot be automated:
 
 - [ ] Pin codex's model and reasoning effort in `~/.codex/config.toml`. Same
       category as the pin above, and machine-local for the same reason: that
-      file also carries a trust level per project directory. `bin/delegate.sh`
-      passes codex no `--model`, so this is what the `gpt` and `image` roles
-      inherit as well as a session started by hand:
+      file also carries a trust level per project directory. This is what a
+      session started by hand inherits; the `gpt` and `image` roles name their
+      own model in `bin/delegate.sh` and take only the effort from here:
 
       ```toml
       # ~/.codex/config.toml -- top level, above the [projects] tables.
-      model = "gpt-6-astra"
+      model = "gpt-6-sol"
       model_reasoning_effort = "medium"
       ```
 
@@ -202,10 +202,10 @@ delegate --list                  # the table, with what each plan has left
 | `deep` | Grok 4.7 Extra High | When a first pass was not enough |
 | `peer` | Grok 4.7 High | A parallel subtask the caller could have done itself |
 | `hard` | Fable 5.1 (claude) | Scarce — genuinely hard design and argument |
-| `gpt` | GPT-6 Astra (codex) | Scarce — a different vendor, not a generic second pass |
-| `image` | Image 2, through codex | Images |
+| `gpt` | GPT-6 Sol (codex) | Scarce — a different vendor, not a generic second pass |
+| `image` | Image 2, through codex on GPT-6 Luna | Images |
 
-Seven roles, four destinations. Four land on Grok because that is the plentiful
+Seven roles, five destinations. Four land on Grok because that is the plentiful
 plan — and they stay four names rather than collapsing into one, because
 `dlg:web:pricing` and `dlg:peer:tests` say different things in a sidebar holding
 four panes. Fast is deliberately off every Grok row: Cursor prices it at exactly

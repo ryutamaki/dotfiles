@@ -16,7 +16,7 @@ submits the task. Choose a **role**, never a model string:
     peer   a parallel subtask this session could have done itself
     hard   scarce -- genuinely hard design and argument
     gpt    scarce -- a different vendor, not a generic second pass
-    image  images (same destination as gpt)
+    image  images (same CLI as gpt)
 
 ```sh
 delegate bulk <name> "<task>"          # hand over, wait, read, close: one call
