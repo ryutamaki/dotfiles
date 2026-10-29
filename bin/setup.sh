@@ -93,6 +93,7 @@ link config/starship.toml    "$HOME/.config/starship.toml"
 link claude/skills/cleanup      "$HOME/.claude/skills/cleanup"
 link claude/skills/audit-memory "$HOME/.claude/skills/audit-memory"
 link claude/skills/loop-goal    "$HOME/.claude/skills/loop-goal"
+link claude/skills/delegate     "$HOME/.claude/skills/delegate"
 
 # And again into ~/.agents/skills, because that is the directory codex and
 # cursor-agent read directly -- they get no per-tool copy the way claude does.
@@ -108,13 +109,7 @@ link claude/skills/loop-goal    "$HOME/.claude/skills/loop-goal"
 link claude/skills/cleanup      "$HOME/.agents/skills/cleanup"
 link claude/skills/audit-memory "$HOME/.agents/skills/audit-memory"
 link claude/skills/loop-goal    "$HOME/.agents/skills/loop-goal"
-
-# The one script in this repo that is meant to be typed as a command, by a human
-# and by the agent it hands work to. It goes in ~/.local/bin rather than adding
-# bin/ to .zsh/path.zsh, because that directory also holds setup.sh, and having
-# `setup.sh` a tab-completion away in every shell is a worse trade than one
-# extra symlink. The .sh is dropped: `delegate bulk ...` is the command.
-link bin/delegate.sh "$HOME/.local/bin/delegate"
+link claude/skills/delegate     "$HOME/.agents/skills/delegate"
 
 # One instruction file, two names. claude reads ~/.claude/CLAUDE.md as its user
 # memory and codex reads a global AGENTS.md under CODEX_HOME; the content is

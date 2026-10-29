@@ -106,8 +106,7 @@ These cannot be automated:
 - [ ] Pin codex's model and reasoning effort in `~/.codex/config.toml`. Same
       category as the pin above, and machine-local for the same reason: that
       file also carries a trust level per project directory. This is what a
-      session started by hand inherits; the `gpt` and `image` roles name their
-      own model in `bin/delegate.sh` and take only the effort from here:
+      session started by hand inherits:
 
       ```toml
       # ~/.codex/config.toml -- top level, above the [projects] tables.
@@ -174,67 +173,17 @@ herdr agent list      # what every agent is doing, as JSON
 herdr status          # client and server
 ```
 
-## Two entry points, five models
+## Delegation
 
-Opus 5.5 or Grok 4.7 Extra High gets started by hand — `claude` or
-`cursor-agent`, each with the model already pinned. Grok is the chair when
-the claude plan is empty, or when the work wants Grok in it. Either
-manages, and hands work that is not already in the chair to the rest of
-the table. Nothing asks which model at launch, because that question
-wants the shape of the work before any of it has been done.
+Work that can be split is handed to another herdr pane by
+`claude/skills/delegate`. The agent checks which of `claude`, `codex` and
+`cursor-agent` is installed and chooses for how hard the task is and what
+the tokens cost. A large mechanical pass goes to a cheaper model or the
+plan with the most left; a design judgement goes to a stronger one.
 
-`delegate` takes a **role**, not a model. It splits a herdr pane, starts the
-right CLI on the right model, and submits the task.
-
-```sh
-delegate bulk audit "read every .tf file and list what 1.5.7 pins us to"
-                                 # waits, prints the answer, closes the pane
-delegate --async bulk a "..."    # fan-out: returns at once
-delegate --collect a             # wait for that one to settle, print it, close it
-delegate --status                # live delegates, and what each plan has left
-delegate --answer audit y        # leftover prompt, not the normal path
-delegate --close audit           # or --close-all
-delegate --list                  # the table, with what each plan has left
-```
-
-| Role | Goes to | For |
-|---|---|---|
-| `bulk` | Grok 4.7 High (cursor-agent) | Default — inventories, first passes, a lot of files |
-| `web` | Grok 4.7 High | Research that means reading many web pages |
-| `deep` | Grok 4.7 Extra High | When a first pass was not enough |
-| `peer` | Grok 4.7 High | A parallel subtask the caller could have done itself |
-| `hard` | Fable 5.1 (claude) | Scarce — genuinely hard design and argument |
-| `gpt` | GPT-6 Sol (codex) | Scarce — a different vendor, not a generic second pass |
-| `image` | Image 2, through codex on GPT-6 Luna | Images |
-
-Seven roles, five destinations. Four land on Grok because that is the plentiful
-plan — and they stay four names rather than collapsing into one, because
-`dlg:web:pricing` and `dlg:peer:tests` say different things in a sidebar holding
-four panes. Fast is deliberately off every Grok row: Cursor prices it at exactly
-double per token, and the paid plans meter tokens rather than requests. That is a
-real trade rather than a free win — Cursor's own docs say Fast is the default
-speed tier on Pro and higher, so this steps down from that default to make the
-pool last twice as long.
-
-It delegates without being asked when one of five countable things is true — a
-survey past ~10 files, research past ~3 web pages, an answer it does not hold
-with confidence, a design about to be settled, or an image in the deliverable.
-Counts rather than judgement, because reading a file yourself always *feels*
-faster than opening a pane and waiting for one, so a softer rule loses every
-time. `peer` is the one role with no trigger: "worth not waiting for" is a
-judgement call, and it would undo a list that argues only counts survive.
-
-Every delegate is a herdr agent, so the sidebar shows what it is doing.
-Approvals are answered at start so the task can finish; `blocked` is the
-leftover case, and `--answer` is the keypress. The pane's label is the only registry there is,
-so `herdr pane list` is the ledger — and every closing verb is scoped to the tab
-you are in, so `--close-all` reaches neither a pane you opened yourself nor
-another session's delegates.
-
-The three plans are metered separately, and `bin/statusline.py` already draws
-all three in the sidebar. `delegate` reads the same numbers: above 85% it says
-which plan is emptiest and which roles route there — and sends anyway, because
-quietly rerouting would put the task on a model nobody chose.
+The model a human gets by starting `claude`, `cursor-agent` or `codex` is
+the pin in the checklist above. What a delegate runs for one task is chosen
+at the time, from the CLIs that are actually installed.
 
 ## Loops whose goal is not known yet
 
@@ -266,7 +215,7 @@ a loop ends is fine; not knowing that it ends is not.
 | `claude/skills/` | The agent skills written here rather than installed. Symlinked into **both** `~/.claude/skills` and `~/.agents/skills` — claude reads the first, codex and cursor-agent the second |
 | `claude/skill-lock.json` | Record of the installed skills `setup.sh` restores from upstream |
 | `bin/statusline.py` | The status line `claude` and `cursor-agent` both draw. `codex` gets the nearest built-in items |
-| `bin/delegate.sh` | **The only place a delegate's model string is written.** Symlinked to `~/.local/bin/delegate`. Each CLI still pins its own default in its own config |
+| `claude/skills/delegate/` | How an agent hands work to another CLI. It checks what is installed and picks by difficulty and token price |
 | `Brewfile` | Everything installed on a fresh machine |
 | `CLAUDE.md` | The rules an AI should not break when editing this repo |
 

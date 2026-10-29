@@ -169,390 +169,28 @@ status line into them is a manual step in README.md. `setup.sh` writes nothing
 into two of them; the exception for claude is the section below, and it stays
 clear of the status line.
 
-## Two entry points, five models
+## Two chairs, and delegation picks the CLI
 
-Either Opus 5.5 or Grok 4.7 Extra High is started by hand. `claude` is Opus
--- `claude/settings.base.json` pins `opus[1m]` and `effortLevel: xhigh`.
-`cursor-agent` is Grok -- `~/.cursor/cli-config.json` pins it, and that file is
-machine-local for the same reason the status line is. It pins
-`Grok 4.7 Extra High`, which is what README's checklist asks for.
+Either Opus or Grok is started by hand, and either one is a chair. `claude`
+is Opus — `claude/settings.base.json` pins `opus[1m]` and `effortLevel:
+xhigh`. `cursor-agent` is Grok — `~/.cursor/cli-config.json` pins `Grok 4.7
+Extra High`, and that file is machine-local for the same reason the status
+line is. README's checklist is what asks for the pin. Whichever a human
+starts is the chair for that session, and it hands onward work that another
+CLI should do.
 
-Keeping it there took a fix, because **cursor-agent writes whatever `--model` it
-was launched with back into that file on startup**. So every delegate quietly
-became the default for the next session a human starts by hand: with the default
-set to Extra High, one `bulk` delegate put it back to High. Only startup writes
-it -- closing the pane does not -- so `bin/delegate.sh` snapshots the model keys
-around `herdr agent start` and puts them back. That is a restore rather than a
-configuration, which is the one shape of write this repo allows into a file a
-tool owns; the hole it leaves is a session a human starts by hand inside that
-window. Nothing is chosen at launch, and that session manages rather than does
-everything itself. Grok is the chair when the claude plan is empty, or
-when the work wants Grok in it (a review, a long loop). `bin/delegate.sh`
-is how either of them reaches a model that is not already in the chair --
-Fable 5.1 through claude, GPT-6 Sol through codex, Image 2 through
-codex on GPT-6 Luna, and Grok itself when the chair is Opus.
+Handing onward is `claude/skills/delegate`. The agent checks which of
+`claude`, `codex` and `cursor-agent` it can actually run, and picks for the
+difficulty of the work and the token price. A large mechanical pass goes to
+the cheaper model or the plan with the most left; a design judgement, or an
+answer the chair is unsure of, goes to a stronger one. It runs only where
+`HERDR_ENV=1`, because a delegate is a herdr pane: the `herdr` CLI splits,
+starts and reads it, and the skill is what chooses which of the three runs
+inside.
 
-**A caller picks a role, never a model string.** That is the whole point rather
-than a convenience: choosing correctly at launch means knowing the shape of the
-work before doing any of it, which is exactly what is not known then. The names
-are `bulk`, `web`, `deep`, `peer`, `hard`, `gpt`, `image`.
-
-**Destinations and roles are two tables, not one, and keeping them apart is the
-point.** Seven roles land on five destinations, so writing the model string once
-per role is precisely how the second copy that drifts gets made -- and a drifted
-one fails quietly, because cursor-agent accepts an unknown `--model` and carries
-on with something else. So `dest()` holds the five strings and nothing else does,
-`route()` maps a role to a destination and a sentence, and `resolve()` joins them
-for the three callers that need both.
-
-Roles name **what the caller is buying**, which is why four of them share the two
-Grok destinations rather than collapsing into one name. `dlg:web:pricing` and
-`dlg:peer:tests` say different things in a sidebar holding four panes, and
-`dlg:bulk:` four times does not. Grok is the plentiful plan and the other two are
-not, which is why those four are where the default sits; `hard`, `gpt` and
-`image` are the scarce slots, each something Grok cannot be -- Fable when deep
-came back short, a different vendor, images. When the chair is already Grok,
-those four roles are this session: do not open another Grok for them.
-
-Fast is absent from every Grok destination, and the price of that is measured
-rather than assumed. `cursor.com/docs/models/grok-4-7` prices standard Grok 4.7
-at $2 / $0.50 / $6 per Mtok (input / cached / output) and Fast at exactly double,
-$4 / $1 / $12; the paid plans meter a token pool rather than requests, so Fast
-drains it twice as fast. The same page also says **"Fast is the default speed
-tier on Pro and higher plans"**, which is the part worth knowing before touching
-that table: naming `high` is not picking the plain option, it is stepping down
-from the plan's own default speed in exchange for halving the rate.
-
-That is the trade taken, and it is deliberate: the pool is what runs out first,
-and what the ladder wants when it escalates is more thinking rather than the same
-thinking sooner -- `high` for breadth, `xhigh` when breadth was not enough, a
-real difference at one rate where `high-fast` and `xhigh` would have been two
-names for one call. It is also the one line here that trades away speed, which
-was named as a reason to prefer Grok in the first place, so restoring `-fast` is
-a decision to make on purpose rather than a correction.
-
-All five destinations were confirmed by asking each delegate what it was:
-`Grok 4.7 256K High`, `Grok 4.7 256K Extra High`, `Fable 5.1 with xhigh
-effort`, `GPT-6-Sol medium`, `GPT-6-Luna medium`. codex is two destinations
-because its catalogue has a rung per job: `gpt` is a second opinion, which wants
-a capable model rather than the frontier one, and `image` only drives the Image
-2 tool, so the cheapest chat model is enough. A session started by hand
-gets GPT-6 Sol from `~/.codex/config.toml`, a separate pin that happens to agree
-with `gpt`, and the effort in
-both headers is that file's `model_reasoning_effort`, not anything named here.
-Unlike cursor-agent, codex does not write `--model` back into its config, so
-nothing needs restoring around it. The Luna delegate, asked, called itself
-`gpt-6-sol`. A `web` delegate was confirmed the same way to actually
-hold `WebSearch` and `WebFetch`, which is the whole basis of that role.
-Confirm a change to either table this way -- the CLI's own header line, not the
-model's answer, which gets its own name wrong.
-
-`agents/global.md` states its triggers as the shape of the request -- an
-inventory, a survey, 洗い出し, 調査, an answer that is out on the web, a loop of
-more than a few iterations -- and that is the second attempt. `peer` still
-carries no trigger on purpose: "a subtask worth not waiting for" is a judgement
-call, and one of those sitting in the list would undo the list. The pull is
-toward doing the work in the session that was asked, because reading a file here
-always feels faster than opening a pane and waiting for one, so a trigger needing
-a judgement call loses to that pull every time and the router goes unused.
-
-**The first attempt stated them as counts -- ten files, three web pages -- and
-the measurement is why they are gone.** Every transcript on disk, 181 sessions:
-seven ever spawned a delegate, and 38 of the 69 spawns were in this repository,
-which is to say while building the thing. The file trigger was crossed by 92
-sessions and fired in 3; the web trigger, 17 and 2. Meanwhile claude sat at 85%
-of its week with Grok at 4.4% of its month.
-
-What a count cannot do is be true at a moment when acting on it is still
-rational. "A survey that will read more than ~10 files" is a forecast at file
-zero and a fact at file ten, and at file ten handing over means discarding the
-work already done. So the trigger is never both true and actionable, and the old
-argument was half right: countable triggers do survive their own inconvenience,
-they just have no moment to be checked in. The shape of the ask has exactly one,
-and it is the only one available -- the request arriving, before the first file is
-open. That is a deliberately weaker predicate, bought for being evaluable while
-nothing is sunk yet.
-
-**`--wait` is the other half of the same measurement, and that half was missing
-rather than wrong.** `delegate <role>` returns as soon as the delegate picks the
-task up, which makes it a throughput device: the chair carries on working, the
-wall clock is unchanged, and the scarce plan is not spared at all. The three
-sessions that delegated most that week -- 13, 5 and 3 times -- are three of the
-five largest claude spenders in it. Fired and forgotten, a delegate adds work
-rather than moving it, so a router obeyed perfectly would still have emptied the
-plan it was written to protect.
-
-There are two reasons to delegate, they want opposite behaviour, and the verb now
-says which one is being bought. `delegate --async bulk` for parallelism.
-`delegate bulk` when the point is which subscription pays -- spawn, settle, read,
-close, with the chair stopped for the duration. Collapsing the three-verb ceremony
-matters more than it sounds: what the plain form actually loses to is not the
-count in the trigger but the built-in subagent call, which is one tool call and
-was reached for 148 times over the same sessions against delegate's 69.
-
-Two details in that verb are not free choices. `herdr agent wait` without
-`--timeout` waits indefinitely, so the one verb that blocks its caller needs a
-ceiling or a wedged delegate takes the chair down with it -- `WAIT_MS` is fifteen
-minutes, above every bulk survey measured here and below "the human has gone
-home". And it closes the pane only on `idle` or `done`: a `blocked` delegate is
-waiting on a keypress and an expired wait may be one still working, so closing
-either would throw the work away along with the question. Those two keep their
-pane and the message names the verb to use.
-
-The routing rewrite above did work, and that is why what follows is about
-ceremony rather than about triggers: Claude sessions using delegate went from 7
-of 132 before 2026-08-24 to 32 of 77 after, 5% to 42%. What remained was not a
-reluctance to decide.
-
-**Which of the two forms is the default was then measured again, and inverted.**
-`--wait` was the flag and fire-and-forget was the default, on the argument in the
-paragraph above -- which is right about the verb having to say which reason is
-being bought, and was wrong about which way round to say it. Across all 403
-transcripts, 852 `delegate` calls produced 158 delegates: 5.4 tool calls each,
-against roughly one for the built-in subagent that same paragraph already named
-as the real competitor. 288 of those 852 are `--status`. Fired and forgotten, a
-delegate turns its caller into a poller, which is the budget finding restated in
-wall-clock terms rather than in tokens.
-
-So the blocking form is what a bare `delegate <role> <name> <task>` does now and
-`--async` is the flag. `--wait` stays as a one-line alias rather than an error:
-the string is in old transcripts and in a human's fingers, and it now asks for
-what happens anyway.
-
-**The leak is that same arithmetic from the other end.** 20 of the 158 were never
-closed by the session that opened them, and the distance is why -- a median of 19
-tool calls, a mean of 29 and a maximum of 217 separate a spawn from its
-`--close`. A close that far from its spawn depends on the chair still remembering
-across a stretch that routinely spans a compaction, which is the same shape as a
-routing trigger with no moment it can be checked in, and it fails the same way.
-So reading a delegate ends it: `report_and_release` is shared by the default form
-and by `--collect`, and both close the pane on `idle` or `done`. `--async` is the
-only form that leaves one standing, which is the case where that is deliberate.
-
-`unknown` sits in the same arm as `blocked` there rather than with `idle`, and
-herdr's own skill is the reason: it means herdr cannot classify the pane and
-"does not prove completion".
-
-**`idle` and `done` do not prove it either, and closing on them alone lost work.**
-For cursor-agent herdr reports a stopped state in the middle of a turn -- a long
-tool call, a subagent, a follow-up just landed -- and `herdr agent wait` returns
-on it. Recorded at least five times in two repositories' memory between 09-03
-and 09-14, and seen by a human: `=== name: done ===` over a screen still saying
-Running, the pane closed and the work unrecoverable. That, not habit, is why 77
-of the 251 `--async` spawns after 09-05 were single tasks the chair watched
-before closing; the other 172 were real fan-out, and none were fired only to be
-polled.
-
-So herdr's state is where `settle` starts looking and the screen is the verdict:
-closed only once `visible` has held still for `QUIET_S`. A working CLI animates
-a spinner, a token count or a timer -- measured, a cursor-agent pane in a
-75-second `sleep` changed hash at every 4-second sample and froze the moment it
-finished. That compares the screen with itself rather than matching wording, the
-same reason the spawn retry does not match starship's prompt character. A
-deadline that passes first reports `moving` and keeps the pane. The false `idle`
-itself did not reproduce while this was tested, so the guard is verified on both
-of its exits and not yet against the case that motivated it.
-
-What none of that reaches is a delegate whose tab has moved on. Every closing
-verb is scoped to the caller's tab, deliberately, and the price of that scope is
-a leak nothing can close and nothing can see -- two were sitting `idle` in other
-workspaces when this was written. So `--status` names them without touching them,
-and closing those is a human in the sidebar.
-
-The caller's own harness is the other ceiling, and it is lower than any ceiling
-in the script. Claude Code's Bash tool stops a command at 120s by default and
-refuses to be given more than 600s, while `WAIT_MS` is fifteen minutes -- and a
-killed script runs none of its cleanup, so an overrun orphans the pane and hands
-the chair nothing but "command timed out". Measured, that has not bitten yet: all
-24 `--wait` calls on disk returned, 20 of them with an explicit 600000ms tool
-timeout. Making the form the default is what puts it in reach, so the recovery is
-a printf placed *before* the wait rather than after it -- output written before a
-kill still reaches the caller -- and it names `--collect <name>`.
-
-**Launching fails often enough to be its own reason not to reach for it, and
-that half is not this script's to fix.** Of roughly 216 spawns on disk, 69 hit
-the first retry, 15 the second and 22 gave up after all three: one launch in ten
-never starts. `protocol_mismatch` appears in 9 sessions, which takes the whole
-agent-facing surface down rather than one spawn. The retry ladder is already
-tuned for the load-related stall it can see, so the remaining lever is herdr's
-version -- 0.8.0 is installed, 0.8.2 is out, and 0.8.0's own notes name "`agent
-start` now waits for new pane shells and first-run agent prompts to become ready
-instead of racing them or reporting premature readiness". That upgrade is the
-restart dance further down and costs every pane's scrollback, so it is its own
-piece of work rather than a side effect of touching this script.
-
-**The window was the other refusal, and it was arguing about one axis while the
-window has two.** Every delegate took the widest pane in the tab and always took
-it sideways, so 295 columns halved to 147 and then to 73 and the second delegate
-was refused -- `no room in this tab` fired 13 times across 7 sessions. Widest-
-first was itself a fix for `--current` making the caller pay for every delegate
-it opened, and it inherited the sideways assumption from the version it
-replaced.
-
-So the caller's pane is now split once, to the right, and every delegate after
-that stacks downward inside that column, tallest first for the reason widest-
-first existed -- it spreads the cost rather than quartering the newest arrival.
-An 84-row column reaches eight delegates before it refuses. The caller keeping
-the window's full height from the first split on is the point rather than a side
-effect: one full-height pane beside a stack of short ones says at a glance which
-pane a human is meant to be typing in.
-
-Opening beats the layout wherever the two conflict, and the ladder is written as
-candidates in priority order so that stays true. The delegate column is tried
-first, downward and then sideways, because that is the arrangement worth
-keeping; the caller is tried **last rather than not at all**, and it is the
-half a review caught. Dropping the caller from the pool the moment a delegate
-existed meant a full column refused while the caller sat there splittable on
-both axes -- layout beating opening, which is the inversion this was written to
-prevent. So the caller can lose its full height, but only where the alternative
-is refusing to open at all. Only when no candidate fits does `check_room`
-refuse, and its message names the caller as the pane tried last so the numbers
-it prints are the ones that actually decided.
-
-`MIN_ROWS` is 10, measured the way `MIN_COLS` was rather than guessed: a 10-row
-pane starts cursor-agent and takes a prompt, and at 5 rows `herdr agent start`
-fails outright instead of stalling -- a louder failure than the width one, which
-at 26 columns came up and silently never accepted the prompt. 10 is the
-known-good number, not an extrapolation toward the cliff between them.
-
-Two of the launch refusals are downstream of the leak rather than independent of
-it, which is why the messages for both now name the fix. `is already live` fired
-12 times across 9 sessions, and a delegate nobody closed is the usual reason the
-name is taken -- so when the name resolves to a pane in this tab the message
-says to `--collect` it, and only otherwise says to pick another name.
-
-Every delegate is a `herdr agent`, never a background process. That is the rule
-in `agents/global.md` about dev servers, applied to agents: the sidebar carries
-its state, and the integrations relaunch it with its resume flag when the herdr
-server restarts. It also means a delegate has no keyboard, so a permission
-prompt is a hang rather than a question. `kind_flags` is where each CLI's
-"don't ask" lives -- cursor-agent gets `--trust --force --approve-mcps`,
-codex gets `-a never -s workspace-write`, and claude already has
-`permissions.defaultMode: auto`. The deny list and the workspace sandbox
-still apply; what these flags do not cover (a hook-trust prompt, a project
-codex has never seen) still surfaces as `blocked`, and `--answer` is still a
-keypress and nothing more. A session started by hand is unchanged -- these
-flags only go on what this script starts.
-
-What that buys is measured, and so is what it costs. A `deep` delegate carrying
-those flags rewrote this file, `agents/global.md` and `bin/delegate.sh` while
-another session was mid-edit on all three -- including adding the `--force` that
-let it. That is the shape to expect rather than a bug: a delegate with approvals
-off reaches anything the deny list does not name, this repository included. The
-flags stay, deliberately. What changes is that one session owns a file at a
-time, because an untracked file has no diff to recover a lost update from.
-
-The pane label is the whole registry. `dlg:<role>:<name>` is set by
-`herdr pane rename` and read back from `.label`, so there is no state file to
-reconcile, a leaked delegate is visible in the sidebar rather than recorded
-somewhere only that script can read, and `--close-all` cannot reach a pane a
-human opened because a human's pane never carries the prefix.
-
-**The label alone is not enough, and finding that out cost another session's
-work.** `herdr pane list` is machine-wide, so the first `--close-all` reached a
-delegate a different Opus 5 session had spawned in a different workspace and took
-it down mid-task -- invisible to both sides, since neither is watching the
-other's panes. Every closing verb is now scoped to the caller's own tab, which
-is sound rather than a patch: a delegate is split from the caller's pane and
-therefore always in the caller's tab. Anything added to that script that
-enumerates panes needs the same scope, and the label is not a substitute for it.
-
-The filter that finds those panes is one function for the same reason the scope
-is one rule, and it took a fourth copy to make the point: `--status` needs the
-same set cut the other way -- delegates *not* in this tab -- and wrote its own
-copy of the label filter to get it. Worse than a duplicate, the inverted
-comparison failed open rather than closed: `current_tab` inlined in a command
-substitution cannot stop its caller when it dies, so an empty tab id turned
-`!= $tab` into "every pane on the machine". `tagged_panes` now holds the filter,
-`delegate_panes` and `stray_panes` are the two cuts, and both bind the tab id in
-a bare assignment where set -e can see it fail.
-
-That rule was then broken by the next thing added, which is why it is worth
-stating twice. `herdr pane layout` with no argument answers for the **focused**
-tab, not the caller's -- so the widest-pane split landed in whichever workspace a
-human had last clicked into, the delegate was invisible to every verb here, and
-two of them were left running in another session's tab. `own_pane` and
-`herdr pane layout --pane` fix it. `herdr pane current` is what makes any of this
-possible: it resolves the caller's pane from the calling terminal rather than
-from focus, which is the one herdr call here that cannot move under you.
-
-Scoping the closing verbs was half a fix, which a review caught. `herdr agent
-<name>` also resolves machine-wide, so `--collect` and `--answer` reached the
-same way -- reading another session's delegate, or sending keys into it, which is
-the worse half. Both now resolve the name to a pane in this tab first and address
-the pane, and `pane_of` / `delegate_panes` exist so the filter is written once
-rather than in each verb that needs it.
-
-Budget is warned about and never acted on. The three plans are metered
-separately and `bin/statusline.py` already writes all three to
-`$TMPDIR/statusline-cache/quota-*.json`, so the numbers cost nothing to read --
-but rerouting on them would put the task on a model nobody reasoned about, which
-is a worse outcome than running out. So above 85% it names the emptiest plan and
-the roles that route there, and sends anyway. Anything older than half an hour
-is reported as unknown rather than shown, because a stale percentage reads as a
-current one.
-
-Two races are closed there, and both look like a bug in the delegate rather than
-in the timing. **`herdr agent wait` matches the state it already sees**, so a
-`--collect` issued straight after a fire-and-forget prompt reports the state from
-before the prompt landed and returns an empty answer as though the work were
-done. The fix is `herdr agent prompt --wait --until working`, which carries
-herdr's own observed-state-change guard; `--until working` rather than the
-default settled states, because the point of delegating is not to block.
-`--answer` has the same race from the other side and waits the same way, best
-effort, since `esc` settles a delegate rather than starting it.
-
-A delegate needs room, and running out of it does not look like running out of
-it. `split --current` halved the caller's own pane every time, so the third
-delegate arrived at about a quarter width and could not be prompted at all:
-`agent start` reports ready, the task lands in the composer, and no Enter
-submits it -- indistinguishable from the load-related stall below, which is what
-made it cost half an hour to find. cursor-agent is fine at 53 columns and dead
-at 26. So the split takes the widest pane in the tab rather than the caller's,
-and `check_room` refuses below `MIN_COLS` with the numbers in the message.
-
-That refusal has to be raised outside `try_spawn`, which is the second half of
-the same lesson. `die` inside a function whose output is captured by a command
-substitution exits only the subshell, so the first version's hard refusal came
-back as an ordinary failure, got retried three times, and finished by blaming a
-busy machine for a window that was merely full -- reproducing the exact
-misdiagnosis the check was added to prevent.
-
-`herdr agent start` needs the pane to be at an interactive shell prompt already,
-and a pane one millisecond old is not -- it answers `agent_pane_busy`. The retry
-is on that call rather than on a `wait-output --match` of the prompt character,
-because the character comes from `config/starship.toml`: matching it here would
-put a copy in a second place, where changing the prompt breaks spawning with no
-visible connection to the cause.
-
-One failure shape is worth recognising, because it is not the script's. codex
-upgrades itself on launch -- it did, mid-verification, 0.147.0 to 0.149.0 -- and
-during that download `herdr agent start` reports it interactive-ready while it
-is not at a prompt, so the prompt stalls. It also means a Brewfile cask can move
-without `brew bundle`, which the `--no-upgrade` note under setup.sh does not
-cover.
-
-An earlier draft left a stalled pane standing, on the theory that the CLI might
-have the text and be working. That was wrong, and measuring it is what showed
-why: `agent_prompt_stalled` means herdr observed no state change, so the turn
-never began, and a stalled cursor pane holds the task sitting **unsent** in its
-composer -- `send-keys enter` will not submit it either, because the TUI is
-wedged rather than busy. There is nothing to close over. So `try_spawn` takes its
-own pane down and `cmd_spawn` tries once more, which clears it; a second failure
-means the CLI is genuinely occupied rather than wedged, where retrying cannot
-help, and nothing is left open.
-
-Those retries carry a growing pause, and the pause is the load-bearing part.
-herdr's `--wait` requires an observed state change within 5000ms and that number
-is its own -- a longer `--timeout` does not extend it -- so on a busy machine the
-submit is structurally late. Back-to-back retries all land in the same busy
-window, which is how the first version managed to fail twice and report a wedged
-CLI that was only occupied.
-
-`bin/delegate.sh` is symlinked to `~/.local/bin/delegate` rather than putting
-`bin/` on PATH in `.zsh/path.zsh`. That directory also holds `setup.sh`, and
-having `setup.sh` one tab-completion away in every shell is a worse trade than
-one extra symlink.
+The six rules in that skill are each an accident that was measured. The
+script that measured them — roles, the retry ladder, the pane layout — is
+`bin/delegate.sh` in git history.
 
 ## Loop goals are discovered, not declared
 
@@ -585,9 +223,9 @@ Which plan pays is a field of its own now, beside the budget and exempt for the
 same reason. A loop re-reads its ledger and rebuilds its context every iteration,
 so it empties the chair's plan faster than anything else here, and which chair it
 is in is knowable before the first iteration even when the goal is `不明`. Above
-a few dozen iterations the answer is to start the loop in a Grok chair, not to
-route out of a claude one; `delegate bulk` per iteration is the fallback
-for a loop already running in the wrong one.
+a few dozen iterations the answer is to start the loop in a Grok chair. A loop
+already running in the wrong one hands each iteration's heavy reading to another
+CLI through `claude/skills/delegate`, and keeps the ledger itself.
 
 The ledger is the state, which is why the skill says to put its path in the
 `/loop` prompt rather than relying on the protocol staying in context. Read back
@@ -679,15 +317,16 @@ computes against `min(modelMax, autoCompactWindow)` instead, so it shows nearly
 100% at the same moment and grows an `Autocompact buffer` block worth the
 33,000. Read the status line when the question is "how full is the model".
 
-## Three agent skills are written here, the rest are installed
+## Four agent skills are written here, the rest are installed
 
 `~/.agents/skills` is where the installed skills live, and it is not a git
-repository. All but two come from upstream — the bulk from `mattpocock/skills`,
-plus `herdr` from `herdrdev/herdr` — so `setup.sh` restores them with one
-`skills add` per source and nothing more is needed here than
-`claude/skill-lock.json` as the record of what was installed and when. That
-installer only fetches current, which puts skills in the same category as
-`claude` and `cursor-agent`: reproducible, not pinnable.
+repository. All but the four written here come from upstream — the bulk
+from `mattpocock/skills`, plus `herdr` from `herdrdev/herdr` — so
+`setup.sh` restores them with one `skills add` per source and nothing more
+is needed here than `claude/skill-lock.json` as the record of what was
+installed and when. That installer only fetches current, which puts skills
+in the same category as `claude` and `cursor-agent`: reproducible, not
+pinnable.
 
 Guard a new source on a skill only that source provides, never on
 `~/.agents/skills` itself — the first source to install creates that directory
@@ -699,10 +338,13 @@ Code gets a symlink at `~/.claude/skills/<name>`; codex and cursor-agent read
 `~/.agents/skills` directly and get no per-tool copy. An empty `~/.codex/skills`
 is therefore normal and not a failed install.
 
-`claude/skills/cleanup`, `claude/skills/audit-memory` and
-`claude/skills/loop-goal` are the exceptions. All three are authored, all three
-are absent from that lockfile, and until they were tracked they existed on
-exactly one disk. The section above argues what `loop-goal` is for.
+`claude/skills/cleanup`, `claude/skills/audit-memory`,
+`claude/skills/loop-goal` and `claude/skills/delegate` are the exceptions.
+All four are authored, all four are absent from that lockfile, and until
+they were tracked they existed on exactly one disk. The sections above
+argue what `delegate` and `loop-goal` are for, and `delegate` needs the
+same two links as the other three — `~/.claude/skills` and
+`~/.agents/skills`.
 
 **An authored skill needs two links, not one, and one link is worse than it
 looks.** `~/.claude/skills/<name>` reaches claude; codex and cursor-agent read
@@ -886,16 +528,14 @@ six lines of output and correct for both scrollback sources after a hundred.
 That is why `visible` is the starting point and `recent-unwrapped` is worth
 reaching for only once the output has actually scrolled.
 
-Stacking delegates made the other half of that ordinary, so `delegate` reads both
-and keeps the longer answer. `visible` is one screenful, and a delegate in a
-ten-row pane has its answer cut to ten lines while looking as though it said
-almost nothing. The scrollback has the whole turn there — checked rather than
-assumed, since a TUI holding the alternate screen would have none:
-`recent-unwrapped` on a 10-row cursor-agent pane came back with the prompt, the
-answer and the banner above it. Neither source is right alone, and which one is
-wrong now depends on a pane height that is no longer fixed, so `read_agent` takes
-the longer of the two. That extends the rule above rather than reversing it —
-`visible` is still the floor.
+A short pane is the other half of that trap. `visible` is one screenful, and a
+ten-row pane cuts an answer to ten lines while looking as though it said almost
+nothing. The scrollback has the whole turn there — checked rather than assumed,
+since a TUI holding the alternate screen would have none: `recent-unwrapped` on
+a 10-row cursor-agent pane came back with the prompt, the answer and the banner
+above it. Neither source is right alone, and which one is wrong depends on the
+pane's height, so the read takes the longer of the two. That extends the rule
+above rather than reversing it — `visible` is still the floor.
 
 `herdr pane wait-output --match` is the reliable readiness signal and does not
 share the problem, because it searches the snapshot immediately and matches
